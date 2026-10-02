@@ -1,0 +1,11 @@
+{
+  "name": "promptsklad",
+  "owner": { "name": "promptsklad" },
+  "plugins": [
+    {
+      "name": "starter",
+      "source": "./plugins/starter",
+      "description": "Базовые скиллы promptsklad"
+    }
+  ]
+}

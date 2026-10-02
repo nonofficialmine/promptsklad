@@ -1,0 +1,6 @@
+[
+  { "text": "Промпты", "link": "/prompts/", "activeMatch": "/prompts/" },
+  { "text": "Скиллы", "link": "/skills/", "activeMatch": "/skills/" },
+  { "text": "Кейсы", "link": "/cases/", "activeMatch": "/cases/" },
+  { "text": "Как добавить", "link": "/contribute" }
+]

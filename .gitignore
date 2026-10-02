@@ -1,0 +1,33 @@
+# Служебные дампы playwright-mcp
+.playwright-mcp/
+
+# Временные файлы: скриншоты QA, промежуточные артефакты
+.tmp/
+
+# Локальные настройки Claude (личные разрешения, не для команды)
+.claude/settings.local.json
+
+# Секреты — никогда не коммитить
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# Мусор ОС
+.DS_Store
+Thumbs.db
+
+# Инфраструктура auto-builder (локально, не часть promptsklad)
+.claude/
+CLAUDE.md
+README.md
+docs/
+research/
+settings.json
+
+# Сборка
+node_modules/
+doc_build/
+dist/
+*.log*
