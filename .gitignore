@@ -21,7 +21,6 @@ Thumbs.db
 # Инфраструктура auto-builder (локально, не часть promptsklad)
 .claude/
 CLAUDE.md
-README.md
 docs/
 research/
 settings.json

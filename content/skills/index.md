@@ -5,7 +5,7 @@
 ## Установка
 
 ```text
-/plugin marketplace add <owner>/promptsklad
+/plugin marketplace add nonofficialmine/promptsklad
 /plugin install starter@promptsklad
 ```
 
