@@ -30,3 +30,5 @@ node_modules/
 doc_build/
 dist/
 *.log*
+.vercel
+.env*
