@@ -4,8 +4,6 @@ import { authorsPlugin } from './site/authors-plugin';
 
 export default defineConfig({
   root: path.join(__dirname, 'content'),
-  // GitHub Pages отдаёт сайт из /<repo>/
-  base: process.env.BASE_PATH ?? '/',
   lang: 'ru',
   title: 'promptsklad',
   description: 'Общий склад промптов, скиллов и кейсов работы с ИИ',

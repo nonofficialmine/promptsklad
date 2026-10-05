@@ -22,7 +22,7 @@
 - `.claude-plugin/marketplace.json` + `plugins/*` — скиллы.
 - Публикация: `content/new.mdx` (форма) → Issue Form → `.github/workflows/submission.yml` + `scripts/submission.mjs`. Валидация общая: `site/validate.mjs`.
 - Профили = GitHub-аккаунты, страницы `/authors/*` генерирует `site/authors-plugin.ts`.
-- Хостинг: GitHub Pages (`deploy.yml`), BASE_PATH=/promptsklad/.
+- Хостинг: Vercel (`vercel.json`, деплой на каждый пуш). `ci.yml` — тесты + сборка.
 - Docker: node build → nginx static, `/health`.
 - FSD/Effector/VSA не применимы: нет бизнес-состояния и бэкенда.
 
@@ -30,5 +30,5 @@
 Свой логин, лайки, БД, свой бэкенд, TG-бот (нет ресурсов на хостинг), публикация в npm/PyPI.
 
 ## Текущая итерация
-v0.2 — публикация через форму (вариант A): форма + Issue Form + Action, профили авторов, GitHub Pages.
+v0.2 — публикация через форму (вариант A): форма + Issue Form + Action, профили авторов, хостинг на Vercel.
 Дальше: вход через GitHub без лишнего клика (вариант B, Cloudflare Worker), если клик на GitHub будет мешать.

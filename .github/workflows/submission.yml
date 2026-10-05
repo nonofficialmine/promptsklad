@@ -11,7 +11,6 @@ concurrency:
 permissions:
   contents: write
   issues: write
-  actions: write
 
 jobs:
   publish:
@@ -48,18 +47,17 @@ jobs:
         if: failure() && steps.gen.outputs.ok == 'true'
         run: gh issue comment "$NUMBER" --body "Пост не собрался, модератор посмотрит. Лог: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
 
-      - name: Коммит, комментарий, закрытие, деплой
+      - name: Коммит, комментарий, закрытие
         if: steps.gen.outputs.ok == 'true'
         run: |
-          git config user.name "promptsklad-bot"
+          git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add "$FILE"
           git commit -m "Пост #$NUMBER от @$AUTHOR"
           git pull --rebase
           git push
-          gh issue comment "$NUMBER" --body "$MESSAGE. Сайт обновится через пару минут."
+          gh issue comment "$NUMBER" --body "$MESSAGE. Vercel обновит сайт через пару минут."
           gh issue close "$NUMBER"
-          gh workflow run deploy.yml
         env:
           FILE: ${{ steps.gen.outputs.file }}
           MESSAGE: ${{ steps.gen.outputs.message }}
