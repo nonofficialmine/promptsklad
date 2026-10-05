@@ -15,6 +15,14 @@
       "id": "section",
       "label": "Раздел",
       "kind": "select",
+      "required": true,
+      "options": "sections"
+    },
+    {
+      "id": "topic",
+      "label": "Тема",
+      "kind": "select",
+      "options": "topics",
       "required": true
     },
     {
@@ -26,20 +34,19 @@
       "max": 80
     },
     {
-      "id": "purpose",
-      "label": "Для чего",
-      "kind": "textarea",
-      "required": true,
-      "min": 10,
-      "max": 300
-    },
-    {
       "id": "post_body",
       "label": "Содержимое: промпт, конфиг, SKILL.md или описание кейса",
       "kind": "textarea",
       "required": true,
       "min": 20,
       "max": 6000
+    },
+    {
+      "id": "purpose",
+      "label": "Для чего",
+      "kind": "textarea",
+      "required": false,
+      "max": 300
     },
     {
       "id": "usage",
@@ -58,9 +65,10 @@
     {
       "id": "tags",
       "label": "Теги",
-      "kind": "input",
+      "kind": "multiselect",
+      "options": "tags",
       "required": false,
-      "max": 100
+      "max": 5
     },
     {
       "id": "models",
@@ -70,11 +78,43 @@
       "max": 100
     },
     {
+      "id": "comment",
+      "label": "Комментарий",
+      "kind": "textarea",
+      "required": false,
+      "max": 1000
+    },
+    {
       "id": "author_name",
       "label": "Имя автора",
       "kind": "input",
       "required": false,
       "max": 40
     }
+  ],
+  "topics": [
+    "dev",
+    "research",
+    "design",
+    "data",
+    "content",
+    "business",
+    "learning",
+    "other"
+  ],
+  "tags": [
+    "code-review",
+    "refactoring",
+    "debugging",
+    "tests",
+    "security",
+    "docs",
+    "automation",
+    "ci-cd",
+    "git",
+    "sql",
+    "frontend",
+    "backend",
+    "tokens"
   ]
 }

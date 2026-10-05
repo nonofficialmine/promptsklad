@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useLang } from '@rspress/core/runtime';
-import type { Lang } from '../i18n';
+import { TAGS, TOPICS, type Lang } from '../i18n';
 import { spec, validate } from '../validate.mjs';
 import './SubmitForm.css';
 
@@ -20,7 +20,9 @@ const TURNSTILE_SRC = 'https://challenges.cloudflare.com/turnstile/v0/api.js?ren
 // Подписи формы по языкам. Значения, уходящие на сервер (ключи разделов, id полей), не переводятся.
 const T = {
   ru: {
-    labels: { author_name: 'Имя (необязательно)' } as Record<string, string>,
+    labels: { author_name: 'Имя (необязательно)', comment: 'Комментарий — что хотите добавить от себя' } as Record<string, string>,
+    hints: { topic: 'Сфера работы — одна', tags: 'Конкретные задачи и инструменты — до 5' } as Record<string, string>,
+    pick: 'Выберите…',
     sections: {} as Record<string, string>,
     submit: 'Отправить на публикацию',
     sending: 'Отправляем…',
@@ -35,7 +37,10 @@ const T = {
     labels: {
       section: 'Bo‘lim', post_title: 'Nomi', purpose: 'Nima uchun', post_body: 'Mazmuni: prompt, konfig, SKILL.md yoki keys tavsifi',
       usage: 'Qanday ishlatish', why: 'Nega ishlaydi / xulosalar', tags: 'Teglar', models: 'Modellar', author_name: 'Ism (ixtiyoriy)',
+      topic: 'Mavzu', comment: 'Izoh — o‘zingizdan nima qo‘shmoqchisiz',
     } as Record<string, string>,
+    hints: { topic: 'Ish sohasi — bitta', tags: 'Aniq vazifalar va vositalar — 5 tagacha' } as Record<string, string>,
+    pick: 'Tanlang…',
     sections: { Промпт: 'Prompt', Скилл: 'Skill', Кейс: 'Keys', Хук: 'Hook', Плагин: 'Plagin', Настройка: 'Sozlama', MCP: 'MCP', Агент: 'Agent' } as Record<string, string>,
     submit: 'Chop etishga yuborish',
     sending: 'Yuborilmoqda…',
@@ -50,7 +55,10 @@ const T = {
     labels: {
       section: 'Section', post_title: 'Title', purpose: 'Purpose', post_body: 'Content: prompt, config, SKILL.md or case description',
       usage: 'How to use', why: 'Why it works / takeaways', tags: 'Tags', models: 'Models', author_name: 'Name (optional)',
+      topic: 'Topic', comment: 'Comment — anything you want to add',
     } as Record<string, string>,
+    hints: { topic: 'Area of work — pick one', tags: 'Specific tasks and tools — up to 5' } as Record<string, string>,
+    pick: 'Choose…',
     sections: { Промпт: 'Prompt', Скилл: 'Skill', Кейс: 'Case', Хук: 'Hook', Плагин: 'Plugin', Настройка: 'Setting', MCP: 'MCP', Агент: 'Agent' } as Record<string, string>,
     submit: 'Submit for publishing',
     sending: 'Sending…',
@@ -114,6 +122,17 @@ export function SubmitForm() {
       widgetId.current = undefined;
     };
   }, [formShown]);
+
+  // Список тегов закрывается кликом снаружи, как обычный dropdown.
+  useEffect(() => {
+    const close = (e: MouseEvent) => {
+      document.querySelectorAll<HTMLDetailsElement>('.psk-multi[open]').forEach((d) => {
+        if (!d.contains(e.target as Node)) d.open = false;
+      });
+    };
+    document.addEventListener('click', close);
+    return () => document.removeEventListener('click', close);
+  }, []);
 
   const set = (id: string, v: string) => {
     setValues((s) => ({ ...s, [id]: v }));
@@ -184,26 +203,83 @@ export function SubmitForm() {
           onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) =>
             set(f.id, e.target.value),
         };
+        const label = (
+          <span>
+            {t.labels[f.id] ?? f.label}
+            {f.required && <b> *</b>}
+          </span>
+        );
+        const hint = t.hints[f.id] && <small className="psk-hint">{t.hints[f.id]}</small>;
+        const error = errors[f.id] && <small className="psk-error">{errors[f.id]}</small>;
+
+        if (f.kind === 'multiselect') {
+          const picked = (values[f.id] ?? '').split(',').filter(Boolean);
+          const toggle = (id: string) =>
+            set(f.id, (picked.includes(id) ? picked.filter((x) => x !== id) : [...picked, id]).join(','));
+          return (
+            <div key={f.id} className="psk-field">
+              {label}
+              {hint}
+              <details className="psk-multi" id={`f-${f.id}`} aria-invalid={!!errors[f.id]}>
+                <summary>
+                  {picked.length ? (
+                    picked.map((id) => (
+                      <span key={id} className="psk-chip">
+                        {TAGS[id]?.[lang] ?? id}
+                      </span>
+                    ))
+                  ) : (
+                    <span className="psk-placeholder">{t.pick}</span>
+                  )}
+                </summary>
+                <div className="psk-multi__list">
+                  {spec.tags.map((id) => (
+                    <label key={id} className="psk-check">
+                      <input
+                        type="checkbox"
+                        checked={picked.includes(id)}
+                        disabled={!picked.includes(id) && picked.length >= (f.max ?? 5)}
+                        onChange={() => toggle(id)}
+                      />
+                      {TAGS[id]?.[lang] ?? id}
+                    </label>
+                  ))}
+                </div>
+              </details>
+              {error}
+            </div>
+          );
+        }
+
         return (
           <label key={f.id} className="psk-field">
-            <span>
-              {t.labels[f.id] ?? f.label}
-              {f.required && <b> *</b>}
-            </span>
+            {label}
+            {hint}
             {f.kind === 'select' ? (
               <select {...common}>
-                {Object.keys(spec.sections).map((s) => (
-                  <option key={s} value={s}>
-                    {t.sections[s] ?? s}
-                  </option>
-                ))}
+                {f.options === 'topics' ? (
+                  <>
+                    <option value="">{t.pick}</option>
+                    {spec.topics.map((id) => (
+                      <option key={id} value={id}>
+                        {TOPICS[id]?.[lang] ?? id}
+                      </option>
+                    ))}
+                  </>
+                ) : (
+                  Object.keys(spec.sections).map((s) => (
+                    <option key={s} value={s}>
+                      {t.sections[s] ?? s}
+                    </option>
+                  ))
+                )}
               </select>
             ) : f.kind === 'textarea' ? (
               <textarea {...common} rows={f.id === 'post_body' ? 10 : 3} maxLength={f.max} />
             ) : (
               <input {...common} maxLength={f.max} />
             )}
-            {errors[f.id] && <small className="psk-error">{errors[f.id]}</small>}
+            {error}
           </label>
         );
       })}

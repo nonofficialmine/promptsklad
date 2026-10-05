@@ -1,6 +1,7 @@
 // Карточка поста: values формы -> posts/<section>/<дата>-<slug>.md.
 // Используется функцией публикации (api/submit.ts).
 import { spec, splitList } from './validate.mjs';
+import { TAGS, TOPICS } from './i18n.ts';
 
 const TRANSLIT = {
   а: 'a', б: 'b', в: 'v', г: 'g', д: 'd', е: 'e', ё: 'e', ж: 'zh', з: 'z', и: 'i', й: 'y', к: 'k',
@@ -45,14 +46,17 @@ export function render(values) {
   const fm = [
     '---',
     `title: ${JSON.stringify(title)}`,
+    `topic: ${JSON.stringify(values.topic)}`,
     `tags: ${JSON.stringify(splitList(values.tags))}`,
     `models: ${JSON.stringify(splitList(values.models))}`,
     ...(name ? [`author_name: ${JSON.stringify(name)}`] : []),
     '---',
   ];
   const parts = [`# ${escapeText(title)}`];
+  const tags = splitList(values.tags).map((t) => TAGS[t]?.ru ?? t);
+  parts.push([`**Тема:** ${TOPICS[values.topic]?.ru ?? values.topic}`, ...(tags.length ? [`**Теги:** ${tags.join(', ')}`] : [])].join(' · '));
   if (name) parts.push(`**Автор:** ${escapeText(name)}`);
-  parts.push(`**Для чего:** ${escapeText(values.purpose.trim())}`);
+  if (values.purpose?.trim()) parts.push(`**Для чего:** ${escapeText(values.purpose.trim())}`);
   if (values.usage?.trim()) parts.push(`**Как использовать:** ${escapeText(values.usage.trim())}`);
   // Промпт/конфиг — как есть в code-блоке; описание кейса — экранированный markdown.
   parts.push(section !== 'cases' ? fence(values.post_body.trim()) : escapeText(values.post_body.trim()));
@@ -60,6 +64,7 @@ export function render(values) {
     const label = section === 'cases' ? 'Выводы' : 'Почему работает';
     parts.push(`**${label}:** ${escapeText(values.why.trim())}`);
   }
+  if (values.comment?.trim()) parts.push(`**Комментарий:** ${escapeText(values.comment.trim())}`);
   return `${fm.join('\n')}\n\n${parts.join('\n\n')}\n`;
 }
 

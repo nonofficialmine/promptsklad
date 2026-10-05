@@ -22,3 +22,42 @@
 .psk-done { display: grid; gap: 12px; margin-top: 24px; padding: 20px; border-radius: 12px; border: 1px solid var(--rp-c-brand); background: var(--rp-c-brand-tint); }
 .psk-done p { margin: 0; }
 .psk-done button { justify-self: start; padding: 8px 18px; border: 1px solid var(--rp-c-brand); border-radius: 999px; background: transparent; color: var(--rp-c-brand); cursor: pointer; }
+
+.psk-hint { margin-top: -2px; font-size: 12px; color: var(--rp-c-text-2); }
+/* перебиваем стили темы для <details> в документации */
+.psk-multi { position: relative; margin: 0 !important; padding: 0 !important; border: 0 !important; background: none !important; }
+.psk-multi > summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  min-height: 40px;
+  padding: 7px 34px 7px 10px;
+  border: 1px solid var(--rp-c-divider);
+  border-radius: 8px;
+  background: var(--rp-c-bg);
+  cursor: pointer;
+  list-style: none;
+}
+.psk-multi > summary::-webkit-details-marker { display: none; }
+.psk-multi > summary::after { content: '▾'; position: absolute; right: 12px; top: 9px; color: var(--rp-c-text-2); }
+.psk-multi[aria-invalid='true'] > summary { border-color: #e5484d; }
+.psk-placeholder { color: var(--rp-c-text-2); }
+.psk-chip { padding: 1px 8px; border-radius: 999px; font-size: 13px; color: var(--rp-c-brand); background: var(--rp-c-brand-tint); }
+.psk-multi__list {
+  position: absolute;
+  z-index: 10;
+  left: 0;
+  right: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+  gap: 2px 12px;
+  margin-top: 4px;
+  padding: 10px 12px;
+  border: 1px solid var(--rp-c-divider);
+  border-radius: 8px;
+  background: var(--rp-c-bg);
+  box-shadow: 0 12px 30px -12px rgba(0, 0, 0, 0.25);
+}
+.psk-check { display: flex; gap: 8px; align-items: center; padding: 4px 0; font-size: 14px; cursor: pointer; }
+.psk-check input { accent-color: var(--rp-c-brand); }
+.psk-check:has(input:disabled) { opacity: 0.45; cursor: not-allowed; }

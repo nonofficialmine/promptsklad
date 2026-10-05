@@ -6,10 +6,11 @@ import { POST } from '../api/submit.ts';
 
 const good = {
   section: 'Промпт',
+  topic: 'dev',
   post_title: 'Ревью SQL-запросов',
   purpose: 'Найти медленные места в запросах',
   post_body: 'Ты — DBA. Проанализируй запрос и найди проблемы с индексами.',
-  tags: 'sql, ревью',
+  tags: 'sql,code-review',
 };
 
 test('slugify: кириллица и узбекская латиница', () => {
@@ -23,9 +24,11 @@ test('postPath: раздел, дата, суффикс, slug', () => {
   assert.equal(p, 'posts/hooks/20261005-7fff-revyu-sql-zaprosov.md');
 });
 
-test('позитив: промпт — в code-блоке, теги во frontmatter, без автора', () => {
+test('позитив: промпт — в code-блоке, тема и теги во frontmatter и тексте, без автора', () => {
   const md = render(good);
-  assert.match(md, /tags: \["sql","ревью"\]/);
+  assert.match(md, /topic: "dev"/);
+  assert.match(md, /tags: \["sql","code-review"\]/);
+  assert.match(md, /\*\*Тема:\*\* Разработка · \*\*Теги:\*\* SQL, код-ревью/);
   assert.match(md, /```text\nТы — DBA/);
   assert.doesNotMatch(md, /Автор|author_name/);
 });
@@ -46,13 +49,31 @@ test('позитив: скилл публикуется в posts/skills', () => 
   assert.match(postPath({ ...good, section: 'Скилл' }), /^posts\/skills\//);
 });
 
-test('негатив: пустые обязательные поля', () => {
+test('обязательные — только раздел, тема, название, содержимое', () => {
   const errs = validate({});
-  for (const id of ['section', 'post_title', 'purpose', 'post_body']) assert.ok(errs[id], id);
+  assert.deepEqual(Object.keys(errs).sort(), ['post_body', 'post_title', 'section', 'topic']);
+});
+
+test('позитив: минимальный пост без необязательных полей', () => {
+  const min = { section: 'Кейс', topic: 'research', post_title: 'Короткий кейс', post_body: 'Описание кейса достаточной длины.' };
+  assert.deepEqual(validate(min), {});
+  const md = render(min);
+  assert.doesNotMatch(md, /Для чего|Теги|Комментарий/);
+});
+
+test('негатив: тема и теги только из списка', () => {
+  assert.equal(validate({ ...good, topic: 'мемы' }).topic, 'Выберите из списка');
+  assert.equal(validate({ ...good, tags: 'git,хакинг' }).tags, 'Выберите из списка');
+  assert.equal(validate({ ...good, tags: 'git,sql,tests,docs,bugs,security' }).tags, 'Не больше 5 тегов');
+});
+
+test('позитив: комментарий выводится и экранируется', () => {
+  const md = render({ ...good, comment: 'от себя <b>важно</b> {x}' });
+  assert.match(md, /\*\*Комментарий:\*\* от себя &lt;b&gt;важно&lt;\/b&gt; &#123;x&#125;/);
 });
 
 test('негатив: короткое / длинное / неизвестный раздел / >5 тегов / javascript:', () => {
-  const errs = validate({ ...good, post_title: 'abc', post_body: 'x'.repeat(6001), section: 'Мем', tags: 'a,b,c,d,e,f', purpose: 'кликни [тут](javascript:alert(1))' });
+  const errs = validate({ ...good, post_title: 'abc', post_body: 'x'.repeat(6001), section: 'Мем', tags: 'git,sql,tests,docs,ci-cd,security', purpose: 'кликни [тут](javascript:alert(1))' });
   assert.match(errs.post_title, /Минимум 5/);
   assert.match(errs.post_body, /Максимум 6000/);
   assert.equal(errs.section, 'Неизвестный раздел');

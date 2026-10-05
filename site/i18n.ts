@@ -105,7 +105,14 @@ export const UI: Record<string, T> = {
   how1: { ru: 'опишите промпт, скилл, хук, конфиг или кейс — в форме', uz: 'prompt, skill, hook, konfig yoki keysni formada yozing', en: 'describe a prompt, skill, hook, config or case in the form' },
   how2: { ru: 'автопроверка полей и капча отсекают мусор и спам', uz: 'maydonlarni avtotekshirish va kapcha spamni to‘xtatadi', en: 'automatic validation and a captcha keep out junk and spam' },
   how3: { ru: 'модератор одобряет — пост на сайте и в llms.txt', uz: 'moderator tasdiqlaydi — post saytda va llms.txt da', en: 'a moderator approves — the post goes live and into llms.txt' },
-  posts1: { ru: 'пост', uz: 'post', en: 'post' },
+  howTitle: { ru: 'Как поделиться опытом', uz: 'Tajribani qanday ulashish', en: 'How to share' },
+  recentTitle: { ru: 'Последние посты', uz: 'So‘nggi postlar', en: 'Recent posts' },
+  noRecent: { ru: 'пока пусто — станьте первым', uz: 'hozircha bo‘sh — birinchi bo‘ling', en: 'nothing yet — be the first' },
+  shareDesc: { ru: 'поделиться опытом — без регистрации', uz: 'tajriba ulashish — ro‘yxatdan o‘tishsiz', en: 'share your experience — no sign-up' },
+  placeholder: { ru: 'введите / или название раздела', uz: '/ yoki bo‘lim nomini kiriting', en: 'type / or a section name' },
+  keys: { ru: '↑↓ выбрать · ⏎ открыть · клик — тоже работает', uz: '↑↓ tanlash · ⏎ ochish · bosish ham ishlaydi', en: '↑↓ select · ⏎ open · click works too' },
+  noMatch: { ru: 'нет такой команды', uz: 'bunday buyruq yo‘q', en: 'no matching command' },
+  sectionsCount: { ru: 'разделов', uz: 'bo‘lim', en: 'sections' },
   sections: { ru: 'Разделы', uz: 'Bo‘limlar', en: 'Sections' },
   empty: { ru: 'Пока пусто.', uz: 'Hozircha bo‘sh.', en: 'Nothing here yet.' },
   shareVia: { ru: 'Поделиться своим — через [форму]', uz: 'O‘zingiznikini [forma] orqali ulashing', en: 'Share yours via the [form]' },
@@ -113,4 +120,42 @@ export const UI: Record<string, T> = {
   author: { ru: 'Автор', uz: 'Muallif', en: 'Author' },
   posts: { ru: 'Постов', uz: 'Postlar', en: 'Posts' },
   githubProfile: { ru: 'Профиль на GitHub', uz: 'GitHub profili', en: 'GitHub profile' },
+};
+
+/** «1 пост / 3 поста / 5 постов», «1 post / 2 posts». */
+export function postsLabel(n: number, lang: Lang): string {
+  if (lang === 'uz') return `${n} post`;
+  if (lang === 'en') return `${n} ${n === 1 ? 'post' : 'posts'}`;
+  const m10 = n % 10;
+  const m100 = n % 100;
+  const word = m10 === 1 && m100 !== 11 ? 'пост' : m10 >= 2 && m10 <= 4 && (m100 < 12 || m100 > 14) ? 'поста' : 'постов';
+  return `${n} ${word}`;
+}
+
+// Тема — сфера работы (одна). Теги — конкретные задачи и инструменты (несколько). Не пересекаются.
+export const TOPICS: Record<string, T> = {
+  dev: { ru: 'Разработка', uz: 'Dasturlash', en: 'Development' },
+  research: { ru: 'Исследования', uz: 'Tadqiqot', en: 'Research' },
+  design: { ru: 'Дизайн', uz: 'Dizayn', en: 'Design' },
+  data: { ru: 'Данные и аналитика', uz: 'Ma’lumotlar va tahlil', en: 'Data & analytics' },
+  content: { ru: 'Тексты и контент', uz: 'Matn va kontent', en: 'Writing & content' },
+  business: { ru: 'Бизнес и продукт', uz: 'Biznes va mahsulot', en: 'Business & product' },
+  learning: { ru: 'Обучение', uz: 'Ta’lim', en: 'Learning' },
+  other: { ru: 'Другое', uz: 'Boshqa', en: 'Other' },
+};
+
+export const TAGS: Record<string, T> = {
+  'code-review': { ru: 'код-ревью', uz: 'kod-review', en: 'code review' },
+  refactoring: { ru: 'рефакторинг', uz: 'refaktoring', en: 'refactoring' },
+  debugging: { ru: 'отладка', uz: 'debug', en: 'debugging' },
+  tests: { ru: 'тесты', uz: 'testlar', en: 'tests' },
+  security: { ru: 'безопасность', uz: 'xavfsizlik', en: 'security' },
+  docs: { ru: 'документация', uz: 'hujjatlar', en: 'docs' },
+  automation: { ru: 'автоматизация', uz: 'avtomatlashtirish', en: 'automation' },
+  'ci-cd': { ru: 'CI/CD', uz: 'CI/CD', en: 'CI/CD' },
+  git: { ru: 'git', uz: 'git', en: 'git' },
+  sql: { ru: 'SQL', uz: 'SQL', en: 'SQL' },
+  frontend: { ru: 'frontend', uz: 'frontend', en: 'frontend' },
+  backend: { ru: 'backend', uz: 'backend', en: 'backend' },
+  tokens: { ru: 'экономия токенов', uz: 'token tejash', en: 'token savings' },
 };

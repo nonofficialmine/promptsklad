@@ -27,3 +27,36 @@
   min-height: calc(100vh - var(--rp-nav-height, 64px));
   padding: 40px 16px;
 }
+
+/* Поиск: широкая строка по центру шапки + панель в моноширинном стиле. */
+@media (min-width: 960px) {
+  .rp-nav { position: relative; }
+  .rp-nav .rp-search-button:not(.rp-search-button--mobile) {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    width: min(460px, 34vw);
+    height: 38px;
+    padding: 0 10px 0 14px;
+    border: 1px solid var(--rp-c-divider);
+    border-radius: 10px;
+    background: var(--rp-c-bg);
+    transition: border-color 160ms ease, box-shadow 160ms ease;
+  }
+  .rp-nav .rp-search-button:not(.rp-search-button--mobile):hover {
+    border-color: var(--rp-c-brand);
+    box-shadow: 0 0 0 3px var(--rp-c-brand-tint);
+  }
+  .rp-search-button__content { width: 100%; }
+  .rp-search-button__word { flex: 1; text-align: left; color: var(--rp-c-text-2); }
+  .rp-search-button__hotkey::before {
+    content: '/';
+    margin-right: 6px;
+    padding: 0 6px;
+    border: 1px solid var(--rp-c-divider);
+    border-radius: 4px;
+  }
+}
+.rp-search-panel__modal { width: min(720px, calc(100vw - 32px)) !important; max-width: none !important; }
+.rp-search-panel__input { font-family: 'JetBrains Mono', ui-monospace, monospace; }

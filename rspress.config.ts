@@ -35,7 +35,7 @@ const uz: Record<string, string> = {
   prevPageText: 'Oldingi sahifa',
   nextPageText: 'Keyingi sahifa',
   editLinkText: 'Sahifani tahrirlash',
-  searchPlaceholderText: 'Qidiruv',
+  searchPlaceholderText: 'Promptlar, skillar, hooklar bo‘yicha qidiruv…',
   searchPanelCancelText: 'Bekor qilish',
   searchNoResultsText: 'Hech narsa topilmadi',
   searchSuggestedQueryText: 'Boshqa so‘rov bilan urinib ko‘ring',
@@ -64,6 +64,11 @@ export default defineConfig({
   title: 'promptsklad',
   description: 'Общий склад промптов, скиллов и кейсов работы с ИИ',
   icon: '/icon.png',
+  head: [
+    '<link rel="preconnect" href="https://fonts.googleapis.com">',
+    '<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>',
+    '<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap">',
+  ],
   locales: [
     { lang: 'ru', label: 'Русский', description: 'Общий склад промптов, скиллов и кейсов работы с ИИ' },
     { lang: 'uz', label: 'O‘zbekcha', description: 'AI bilan ishlash bo‘yicha promptlar, skillar va keyslar ombori' },
@@ -71,6 +76,11 @@ export default defineConfig({
   ],
   i18nSource: (source) => {
     for (const [key, text] of Object.entries(uz)) source[key] = { ...source[key], uz: text };
+    source.searchPlaceholderText = {
+      ...source.searchPlaceholderText,
+      ru: 'Поиск по промптам, скиллам, хукам…',
+      en: 'Search prompts, skills, hooks…',
+    };
     return source;
   },
   // llms.txt + .md-версии страниц — чтобы ИИ сам находил нужное
