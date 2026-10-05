@@ -15,3 +15,10 @@
 }
 .psk-form button:hover { background: var(--rp-c-brand-dark); }
 .psk-notice { padding: 12px; border-radius: 8px; background: var(--rp-c-bg-soft); }
+.psk-notice--error { color: #e5484d; }
+.psk-form button:disabled { opacity: 0.6; cursor: wait; }
+.psk-hp { position: absolute; left: -9999px; width: 1px; height: 1px; opacity: 0; }
+.psk-captcha { min-height: 65px; }
+.psk-done { display: grid; gap: 12px; margin-top: 24px; padding: 20px; border-radius: 12px; border: 1px solid var(--rp-c-brand); background: var(--rp-c-brand-tint); }
+.psk-done p { margin: 0; }
+.psk-done button { justify-self: start; padding: 8px 18px; border: 1px solid var(--rp-c-brand); border-radius: 999px; background: transparent; color: var(--rp-c-brand); cursor: pointer; }

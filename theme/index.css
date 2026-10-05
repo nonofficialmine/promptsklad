@@ -1,0 +1,29 @@
+/* Тёплая палитра Claude вместо синей по умолчанию. */
+:root {
+  --rp-c-brand: #c96442;
+  --rp-c-brand-light: #d97757;
+  --rp-c-brand-lighter: #f2d5c8;
+  --rp-c-brand-dark: #b4532f;
+  --rp-c-brand-darker: #8f3f22;
+  --rp-c-brand-tint: #d977571f;
+  --rp-c-bg: #faf9f5;
+  --rp-home-background-bg: radial-gradient(50% 45% at 50% 42%, #d977571a 0%, #faf9f500 100%), #faf9f5;
+}
+.rp-dark {
+  --rp-c-brand: #e08a6a;
+  --rp-c-brand-light: #e9a487;
+  --rp-c-brand-lighter: #5a3326;
+  --rp-c-brand-dark: #d97757;
+  --rp-c-brand-darker: #c96442;
+  --rp-c-bg: #141413;
+  --rp-home-background-bg: radial-gradient(50% 45% at 50% 42%, #d9775714 0%, #14141300 100%), #141413;
+}
+
+/* Главная: терминал по центру первого экрана. */
+.hub-home {
+  position: relative;
+  display: flex;
+  align-items: center;
+  min-height: calc(100vh - var(--rp-nav-height, 64px));
+  padding: 40px 16px;
+}

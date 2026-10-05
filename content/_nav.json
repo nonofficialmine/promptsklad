@@ -1,7 +1,0 @@
-[
-  { "text": "Промпты", "link": "/prompts/", "activeMatch": "/prompts/" },
-  { "text": "Скиллы", "link": "/skills/", "activeMatch": "/skills/" },
-  { "text": "Кейсы", "link": "/cases/", "activeMatch": "/cases/" },
-  { "text": "Авторы", "link": "/authors/", "activeMatch": "/authors/" },
-  { "text": "Поделиться", "link": "/new" }
-]

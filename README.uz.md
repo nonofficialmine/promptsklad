@@ -5,13 +5,16 @@
 Sun’iy intellekt uchun promptlar, Claude Code skillari va amaliy keyslarning umumiy ombori.
 Yagona git-repozitoriy — haqiqat manbai: odamlar saytni o‘qiydi, AI-agentlar `llms.txt` ni o‘qiydi.
 
+Sayt rus, o‘zbek va ingliz tillarida (almashtirgich sarlavhada). Postlar muallif tilida ko‘rsatiladi.
+
 ## Ichida nima bor
 
 | Bo‘lim | Nima | Qayerda |
 |---|---|---|
-| Promptlar | Kontekstli tayyor promptlar: nima uchun, qaysi modellarda, nega ishlaydi | `content/prompts/` |
+| Promptlar | Kontekstli tayyor promptlar: nima uchun, qaysi modellarda, nega ishlaydi | `posts/prompts/` |
 | Skillar | Claude Code skillari, bitta buyruq bilan o‘rnatiladi | `plugins/` |
-| Keyslar | Tajriba: vazifa → yondashuv → natija → xulosalar | `content/cases/` |
+| Keyslar | Tajriba: vazifa → yondashuv → natija → xulosalar | `posts/cases/` |
+| Hooklar, plaginlar, sozlamalar, MCP, agentlar | Claude Code konfiglari va sozlamalari | `posts/<bo‘lim>/` |
 
 ## Skillarni o‘rnatish (Claude Code)
 
@@ -30,18 +33,21 @@ Yig‘ilgan sayt `/llms.txt`, `/llms-full.txt` va har bir sahifaning `.md` versi
 
 ## Qanday qo‘shish mumkin
 
-**Prompt yoki keys** — saytdagi forma orqali (`/new`): to‘ldiring → GitHub tayyor arizani ochadi → **Create** tugmasini bosing.
-GitHub Action postni tekshiradi, chop etadi va arizani yopadi. GitHub akkauntingiz — muallif profilingiz (`/authors/<nik>`). Git kerak emas.
+**Har qanday material** (prompt, skill, keys, hook, plagin, sozlama, MCP, agent) — saytdagi forma orqali (`/new`). Ro‘yxatdan o‘tishsiz va gitsiz:
+forma → tekshiruv + kapcha → Vercel funksiyasi Pull Request ochadi → moderator birlashtiradi → Vercel chop etadi.
 
-**Skill yoki tuzatish** — Pull Request orqali:
+**Git orqali** — `posts/<bo‘lim>/<slug>.md` fayli bilan Pull Request. O‘rnatiladigan skillar: `plugins/<plugin>/skills/<skill>/SKILL.md`.
 
-| Nima | Qayerga |
+Bo‘lim ro‘yxatlari va yon panel avtomatik yig‘iladi.
+
+### Chop etishni sozlash (Vercel env)
+
+| O‘zgaruvchi | Nima |
 |---|---|
-| Prompt | `content/prompts/<slug>.md` |
-| Keys | `content/cases/<slug>.md` |
-| Skill | `plugins/<plugin>/skills/<skill>/SKILL.md` + `content/skills/index.md` ga qator |
+| `GITHUB_TOKEN` | Ushbu repozitoriy uchun fine-grained token: Contents + Pull requests = Read and write |
+| `TURNSTILE_SITE_KEY`, `TURNSTILE_SECRET_KEY` | [Cloudflare Turnstile](https://dash.cloudflare.com/?to=/:account/turnstile) kalitlari (bepul) |
 
-Bo‘lim ro‘yxatlari va muallif sahifalari avtomatik yig‘iladi. Kartochka shabloni: [`content/contribute.md`](content/contribute.md).
+Lokal (`npm run dev`) `/api/submit` Turnstile test kalitlari bilan quruq rejimda ishlaydi — GitHub’ga hech narsa yuborilmaydi.
 
 ## Lokal ishga tushirish
 

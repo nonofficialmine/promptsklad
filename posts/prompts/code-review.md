@@ -2,12 +2,12 @@
 title: Ревью кода по диффу
 tags: [код, ревью]
 models: [любая]
-author: "nonofficialmine"
+author_name: "nonofficialmine"
 ---
 
 # Ревью кода по диффу
 
-**Автор:** [@nonofficialmine](/authors/nonofficialmine)
+**Автор:** nonofficialmine
 
 **Для чего:** быстрое ревью изменений перед мержем — только реальные баги, без вкусовщины.
 

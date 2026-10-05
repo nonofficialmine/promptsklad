@@ -5,13 +5,16 @@
 A shared library of AI prompts, Claude Code skills, and real-world cases.
 One git repository is the source of truth: people browse the website, AI agents read `llms.txt`.
 
+The site is available in Russian, Uzbek and English (switcher in the header). Posts are shown in the author's language.
+
 ## What's inside
 
 | Section | What | Where |
 |---|---|---|
-| Prompts | Ready-to-use prompts with context: purpose, models, why it works | `content/prompts/` |
+| Prompts | Ready-to-use prompts with context: purpose, models, why it works | `posts/prompts/` |
 | Skills | Claude Code skills, installable with one command | `plugins/` |
-| Cases | Experience: task → approach → result → takeaways | `content/cases/` |
+| Cases | Experience: task → approach → result → takeaways | `posts/cases/` |
+| Hooks, plugins, settings, MCP, agents | Claude Code configs and setups | `posts/<section>/` |
 
 ## Install skills (Claude Code)
 
@@ -30,18 +33,21 @@ The built site serves `/llms.txt`, `/llms-full.txt`, and a `.md` version of ever
 
 ## Contributing
 
-**Prompt or case** — use the form on the site (`/new`): fill it in → GitHub opens a prefilled issue → click **Create**.
-A GitHub Action validates the post, publishes it, and closes the issue. Your GitHub account is your author profile (`/authors/<nick>`). No git required.
+**Any material** (prompt, skill, case, hook, plugin, setting, MCP, agent) — use the form on the site (`/new`). No sign-up, no git:
+form → validation + captcha → Vercel Function opens a Pull Request → a moderator merges → Vercel publishes.
 
-**Skill or edit** — open a Pull Request:
+**Via git** — a Pull Request with `posts/<section>/<slug>.md`. Installable skills: `plugins/<plugin>/skills/<skill>/SKILL.md`.
 
-| What | Where |
+Section lists and the sidebar are generated automatically.
+
+### Publishing setup (Vercel env)
+
+| Variable | What |
 |---|---|
-| Prompt | `content/prompts/<slug>.md` |
-| Case | `content/cases/<slug>.md` |
-| Skill | `plugins/<plugin>/skills/<skill>/SKILL.md` + row in `content/skills/index.md` |
+| `GITHUB_TOKEN` | Fine-grained token for this repo: Contents + Pull requests = Read and write |
+| `TURNSTILE_SITE_KEY`, `TURNSTILE_SECRET_KEY` | [Cloudflare Turnstile](https://dash.cloudflare.com/?to=/:account/turnstile) keys (free) |
 
-Section lists and author pages are generated automatically. Card template: [`content/contribute.md`](content/contribute.md).
+Locally (`npm run dev`) `/api/submit` runs in dry-run mode with Turnstile test keys — nothing is sent to GitHub.
 
 ## Run locally
 
