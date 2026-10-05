@@ -10,7 +10,7 @@
 1. Человек ищет промпт → сайт, поиск, копирует.
 2. ИИ-агент ищет промпт → `/llms.txt`, `.md`-версии страниц.
 3. Пользователь Claude Code ставит скилл → `/plugin marketplace add` + `/plugin install`.
-4. Автор делится → PR с карточкой по шаблону (скилл `prompt-card` помогает оформить).
+4. Автор делится → форма `/new` → Issue на GitHub → Action проверяет и публикует (1 шаг автора, ~1 мин). Скиллы — через PR.
 
 ## Ожидаемый результат
 - Сайт со всеми разделами, поиском и `llms.txt`.
@@ -20,12 +20,15 @@
 ## Архитектура
 - Rspress 2 (SSG): `content/` → `doc_build/`.
 - `.claude-plugin/marketplace.json` + `plugins/*` — скиллы.
+- Публикация: `content/new.mdx` (форма) → Issue Form → `.github/workflows/submission.yml` + `scripts/submission.mjs`. Валидация общая: `site/validate.mjs`.
+- Профили = GitHub-аккаунты, страницы `/authors/*` генерирует `site/authors-plugin.ts`.
+- Хостинг: GitHub Pages (`deploy.yml`), BASE_PATH=/promptsklad/.
 - Docker: node build → nginx static, `/health`.
 - FSD/Effector/VSA не применимы: нет бизнес-состояния и бэкенда.
 
 ## Анти-скоуп (пока)
-Аккаунты, лайки, БД, свой бэкенд, публикация в npm/PyPI.
+Свой логин, лайки, БД, свой бэкенд, TG-бот (нет ресурсов на хостинг), публикация в npm/PyPI.
 
 ## Текущая итерация
-v0.1 — каркас: разделы, 1 пример промпта, плагин `starter` со скиллом `prompt-card`, Docker.
-Дальше: GitHub-репозиторий, деплой (Vercel/Pages), TG-автопост при мерже.
+v0.2 — публикация через форму (вариант A): форма + Issue Form + Action, профили авторов, GitHub Pages.
+Дальше: вход через GitHub без лишнего клика (вариант B, Cloudflare Worker), если клик на GitHub будет мешать.

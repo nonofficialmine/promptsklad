@@ -1,0 +1,17 @@
+.psk-form { display: grid; gap: 16px; margin-top: 24px; }
+.psk-field { display: grid; gap: 6px; font-size: 14px; color: var(--rp-c-text-1); }
+.psk-field b { color: var(--rp-c-brand); }
+.psk-field input, .psk-field textarea, .psk-field select {
+  font: inherit; padding: 8px 10px; border-radius: 8px;
+  border: 1px solid var(--rp-c-divider); background: var(--rp-c-bg); color: var(--rp-c-text-1);
+}
+.psk-field textarea { resize: vertical; }
+#f-post_body { font-family: var(--rp-font-family-mono, monospace); }
+.psk-field [aria-invalid='true'] { border-color: #e5484d; }
+.psk-error { color: #e5484d; }
+.psk-form button {
+  justify-self: start; padding: 10px 20px; border: 0; border-radius: 999px; cursor: pointer;
+  font-weight: 600; color: #fff; background: var(--rp-c-brand);
+}
+.psk-form button:hover { background: var(--rp-c-brand-dark); }
+.psk-notice { padding: 12px; border-radius: 8px; background: var(--rp-c-bg-soft); }

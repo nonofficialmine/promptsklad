@@ -30,15 +30,18 @@
 
 ## Как добавить
 
-Через Pull Request:
+**Промпт или кейс** — через форму на сайте (`/new`): заполнить → откроется GitHub с готовой заявкой → нажать **Create**.
+GitHub Action проверит пост, опубликует его и закроет заявку. Ваш GitHub-аккаунт — это профиль автора (`/authors/<ник>`). Git не нужен.
+
+**Скилл или правка** — через Pull Request:
 
 | Что | Куда |
 |---|---|
-| Промпт | `content/prompts/<slug>.md` + ссылка в `content/prompts/index.md` |
-| Кейс | `content/cases/<slug>.md` + ссылка в `content/cases/index.md` |
+| Промпт | `content/prompts/<slug>.md` |
+| Кейс | `content/cases/<slug>.md` |
 | Скилл | `plugins/<plugin>/skills/<skill>/SKILL.md` + строка в `content/skills/index.md` |
 
-Шаблон карточки: [`content/contribute.md`](content/contribute.md).
+Списки разделов и страницы авторов собираются автоматически. Шаблон карточки: [`content/contribute.md`](content/contribute.md).
 
 ## Локальный запуск
 

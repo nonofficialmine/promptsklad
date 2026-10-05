@@ -30,15 +30,18 @@ Yig‘ilgan sayt `/llms.txt`, `/llms-full.txt` va har bir sahifaning `.md` versi
 
 ## Qanday qo‘shish mumkin
 
-Pull Request orqali:
+**Prompt yoki keys** — saytdagi forma orqali (`/new`): to‘ldiring → GitHub tayyor arizani ochadi → **Create** tugmasini bosing.
+GitHub Action postni tekshiradi, chop etadi va arizani yopadi. GitHub akkauntingiz — muallif profilingiz (`/authors/<nik>`). Git kerak emas.
+
+**Skill yoki tuzatish** — Pull Request orqali:
 
 | Nima | Qayerga |
 |---|---|
-| Prompt | `content/prompts/<slug>.md` + `content/prompts/index.md` ga havola |
-| Keys | `content/cases/<slug>.md` + `content/cases/index.md` ga havola |
+| Prompt | `content/prompts/<slug>.md` |
+| Keys | `content/cases/<slug>.md` |
 | Skill | `plugins/<plugin>/skills/<skill>/SKILL.md` + `content/skills/index.md` ga qator |
 
-Kartochka shabloni: [`content/contribute.md`](content/contribute.md).
+Bo‘lim ro‘yxatlari va muallif sahifalari avtomatik yig‘iladi. Kartochka shabloni: [`content/contribute.md`](content/contribute.md).
 
 ## Lokal ishga tushirish
 

@@ -4,6 +4,7 @@ COPY package.json package-lock.json ./
 RUN npm ci
 COPY tsconfig.json rspress.config.ts ./
 COPY content ./content
+COPY site ./site
 RUN npm run build
 
 FROM nginx:1.27-alpine

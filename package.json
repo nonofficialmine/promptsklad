@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "rspress dev",
     "build": "rspress build",
-    "preview": "rspress preview"
+    "preview": "rspress preview",
+    "test": "node --test scripts/*.test.mjs"
   },
   "dependencies": {
     "@rspress/core": "^2.0.23"

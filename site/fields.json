@@ -1,0 +1,15 @@
+{
+  "repo": "nonofficialmine/promptsklad",
+  "template": "submission.yml",
+  "sections": { "Промпт": "prompts", "Кейс": "cases" },
+  "fields": [
+    { "id": "section", "label": "Раздел", "kind": "select", "required": true },
+    { "id": "post_title", "label": "Название", "kind": "input", "required": true, "min": 5, "max": 80 },
+    { "id": "purpose", "label": "Для чего", "kind": "textarea", "required": true, "min": 10, "max": 300 },
+    { "id": "post_body", "label": "Промпт или описание кейса", "kind": "textarea", "required": true, "min": 20, "max": 6000 },
+    { "id": "usage", "label": "Как использовать", "kind": "textarea", "required": false, "max": 1000 },
+    { "id": "why", "label": "Почему работает / выводы", "kind": "textarea", "required": false, "max": 1000 },
+    { "id": "tags", "label": "Теги", "kind": "input", "required": false, "max": 100 },
+    { "id": "models", "label": "Модели", "kind": "input", "required": false, "max": 100 }
+  ]
+}

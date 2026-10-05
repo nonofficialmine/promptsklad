@@ -10,8 +10,8 @@ hero:
       text: Промпты
       link: /prompts/
     - theme: alt
-      text: Как добавить
-      link: /contribute
+      text: Поделиться опытом
+      link: /new
 features:
   - title: Промпты
     details: Готовые промпты с контекстом — для чего, на какой модели, какой результат.

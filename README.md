@@ -30,15 +30,18 @@ The built site serves `/llms.txt`, `/llms-full.txt`, and a `.md` version of ever
 
 ## Contributing
 
-Open a Pull Request:
+**Prompt or case** — use the form on the site (`/new`): fill it in → GitHub opens a prefilled issue → click **Create**.
+A GitHub Action validates the post, publishes it, and closes the issue. Your GitHub account is your author profile (`/authors/<nick>`). No git required.
+
+**Skill or edit** — open a Pull Request:
 
 | What | Where |
 |---|---|
-| Prompt | `content/prompts/<slug>.md` + link in `content/prompts/index.md` |
-| Case | `content/cases/<slug>.md` + link in `content/cases/index.md` |
+| Prompt | `content/prompts/<slug>.md` |
+| Case | `content/cases/<slug>.md` |
 | Skill | `plugins/<plugin>/skills/<skill>/SKILL.md` + row in `content/skills/index.md` |
 
-Card template: [`content/contribute.md`](content/contribute.md).
+Section lists and author pages are generated automatically. Card template: [`content/contribute.md`](content/contribute.md).
 
 ## Run locally
 

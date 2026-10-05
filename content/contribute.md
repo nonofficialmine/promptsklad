@@ -1,12 +1,16 @@
 # Как добавить
 
-Всё добавляется через Pull Request в репозиторий.
+**Промпт или кейс** — через [форму на сайте](/new): 1 минута, git не нужен, нужен только аккаунт GitHub. Пост проверяется и публикуется автоматически.
+
+**Скилл или правка** — через Pull Request:
 
 | Что | Куда |
 |---|---|
-| Промпт | `content/prompts/<slug>.md` + ссылка в `content/prompts/index.md` |
-| Кейс | `content/cases/<slug>.md` + ссылка в `content/cases/index.md` |
+| Промпт | `content/prompts/<slug>.md` |
+| Кейс | `content/cases/<slug>.md` |
 | Скилл | `plugins/<plugin>/skills/<skill>/SKILL.md` + строка в `content/skills/index.md` |
+
+Списки разделов и страницы авторов собираются автоматически.
 
 ## Шаблон карточки
 
@@ -15,7 +19,7 @@
 title: Короткое название
 tags: [тема1, тема2]
 models: [claude, gpt, любая]
-author: ваш ник
+author: "ваш-github-ник"
 ---
 
 # Короткое название
