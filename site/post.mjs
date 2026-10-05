@@ -1,7 +1,7 @@
 // Карточка поста: values формы -> posts/<section>/<дата>-<slug>.md.
 // Используется функцией публикации (api/submit.ts).
 import { spec, splitList } from './validate.mjs';
-import { TAGS, TOPICS } from './i18n.ts';
+import { TAGS, TOPICS } from './taxonomy.mjs';
 
 const TRANSLIT = {
   а: 'a', б: 'b', в: 'v', г: 'g', д: 'd', е: 'e', ё: 'e', ж: 'zh', з: 'z', и: 'i', й: 'y', к: 'k',
