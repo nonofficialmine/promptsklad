@@ -2,7 +2,11 @@ import * as path from 'node:path';
 import { defineConfig } from '@rspress/core';
 import type { IncomingMessage, ServerResponse } from 'node:http';
 import { POST as submit } from './api/submit';
-import { postsPlugin, sidebar } from './site/posts-plugin';
+import { canonicalPath, isPostCopy, postsPlugin, sidebar } from './site/posts-plugin';
+
+// Прод-домен; при своём домене задать SITE_URL в env Vercel.
+const SITE_URL = (process.env.SITE_URL ?? 'https://promptsklad.vercel.app').replace(/\/$/, '');
+const abs = (routePath: string) => `${SITE_URL}${routePath.replace(/\/index$/, '/')}`;
 
 // Тестовые ключи Cloudflare Turnstile: капча всегда проходит. Только для локальной разработки;
 // в проде реальные ключи из env (с тестовым site key и реальным секретом проверка не пройдёт).
@@ -60,19 +64,41 @@ const uz: Record<string, string> = {
 
 export default defineConfig({
   root: path.join(__dirname, 'content'),
+  siteOrigin: SITE_URL, // абсолютные hreflang
+  route: { cleanUrls: true }, // URL без .html — как cleanUrls в vercel.json
   lang: 'ru',
   title: 'promptsklad',
-  description: 'Общий склад промптов, скиллов и кейсов работы с ИИ',
   icon: '/icon.png',
   head: [
+    // SEO: canonical на себя; копии постов в uz/en — noindex и canonical на русский оригинал.
+    (route) => ['link', { rel: 'canonical', href: abs(canonicalPath(route.routePath)) }],
+    (route) => (isPostCopy(route.routePath) ? ['meta', { name: 'robots', content: 'noindex, follow' }] : undefined),
+    ['meta', { property: 'og:site_name', content: 'promptsklad' }],
+    ['meta', { property: 'og:image', content: `${SITE_URL}/og.png` }],
+    ['meta', { name: 'twitter:card', content: 'summary_large_image' }],
+    ...(process.env.GOOGLE_SITE_VERIFICATION
+      ? [['meta', { name: 'google-site-verification', content: process.env.GOOGLE_SITE_VERIFICATION }] as [string, Record<string, string>]]
+      : []),
     '<link rel="preconnect" href="https://fonts.googleapis.com">',
     '<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>',
     '<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap">',
   ],
   locales: [
-    { lang: 'ru', label: 'Русский', description: 'Общий склад промптов, скиллов и кейсов работы с ИИ' },
-    { lang: 'uz', label: 'O‘zbekcha', description: 'AI bilan ishlash bo‘yicha promptlar, skillar va keyslar ombori' },
-    { lang: 'en', label: 'English', description: 'A shared library of AI prompts, skills and cases' },
+    {
+      lang: 'ru',
+      label: 'Русский',
+      description: 'Общий склад промптов, скиллов, хуков, MCP и кейсов работы с Claude Code. Делитесь опытом без регистрации.',
+    },
+    {
+      lang: 'uz',
+      label: 'O‘zbekcha',
+      description: 'Claude Code bilan ishlash bo‘yicha promptlar, skillar, hooklar, MCP va keyslar ombori. Ro‘yxatdan o‘tmasdan ulashing.',
+    },
+    {
+      lang: 'en',
+      label: 'English',
+      description: 'A shared library of Claude Code prompts, skills, hooks, MCP servers and real-world cases. Share yours, no sign-up.',
+    },
   ],
   i18nSource: (source) => {
     for (const [key, text] of Object.entries(uz)) source[key] = { ...source[key], uz: text };
@@ -85,7 +111,7 @@ export default defineConfig({
   },
   // llms.txt + .md-версии страниц — чтобы ИИ сам находил нужное
   llms: true,
-  plugins: [postsPlugin(path.join(__dirname, 'posts'))],
+  plugins: [postsPlugin(path.join(__dirname, 'posts'), SITE_URL)],
   themeConfig: {
     sidebar: sidebar(path.join(__dirname, 'posts')),
     // Меню задаётся здесь: при sidebar в конфиге Rspress не читает _nav.json.

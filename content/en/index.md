@@ -1,5 +1,8 @@
 ---
 pageType: home
+# Для главной Rspress строит <title> как «promptsklad - titleSuffix»
+titleSuffix: Claude Code prompts, skills and know-how
+description: A shared library of Claude Code prompts, skills, hooks, MCP servers and real-world cases. Share yours, no sign-up.
 
 hero:
   name: promptsklad

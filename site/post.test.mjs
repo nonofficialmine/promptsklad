@@ -33,6 +33,12 @@ test('позитив: промпт — в code-блоке, тема и теги 
   assert.doesNotMatch(md, /Автор|author_name/);
 });
 
+test('SEO: description из «Для чего» (одна строка, до 160 символов), без него — нет', () => {
+  assert.match(render({ ...good, purpose: 'Найти\nмедленные   места' }), /^description: "Найти медленные места"$/m);
+  assert.equal(render({ ...good, purpose: 'x'.repeat(300) }).match(/^description: "(x+)"$/m)[1].length, 160);
+  assert.doesNotMatch(render({ ...good, purpose: '' }), /^description:/m);
+});
+
 test('позитив: имя автора попадает в frontmatter и текст', () => {
   const md = render({ ...good, author_name: '  Али  ' });
   assert.match(md, /author_name: "Али"/);

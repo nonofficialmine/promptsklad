@@ -1,9 +1,9 @@
 // Генерирует страницы из posts/<раздел>/*.md для каждого языка: сами посты и списки разделов.
 // Плюс боковая панель со всеми разделами — переключение между ними в 1 клик.
 // Страницы авторов (/authors/*) пока отключены — см. закомментированный блок ниже.
-import { existsSync, readdirSync, readFileSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import * as path from 'node:path';
-import type { RspressPlugin, Sidebar } from '@rspress/core';
+import type { RouteMeta, RspressPlugin, Sidebar } from '@rspress/core';
 import { LANGS, SECTIONS, UI, prefix } from './i18n';
 
 const NICK = /^[A-Za-z0-9-]{1,39}$/;
@@ -53,6 +53,20 @@ export function collectPosts(postsRoot: string): Post[] {
   return posts;
 }
 
+const SECTION_IDS = SECTIONS.map((s) => s.id).join('|');
+const POST_ROUTE = new RegExp(`^(/(?:uz|en))?/(${SECTION_IDS})/[^/]+$`);
+
+/** Копия поста в uz/en (тот же текст, что и у русского оригинала) — для SEO это дубль. */
+export function isPostCopy(routePath: string): boolean {
+  const m = POST_ROUTE.exec(routePath);
+  return !!m?.[1] && !routePath.endsWith('/index');
+}
+
+/** URL русского оригинала для копии поста; для остальных страниц — сам маршрут. */
+export function canonicalPath(routePath: string): string {
+  return isPostCopy(routePath) ? routePath.replace(/^\/(uz|en)/, '') : routePath;
+}
+
 /** Боковая панель: все разделы и их посты, для каждого языка. */
 export function sidebar(postsRoot: string): Sidebar {
   const posts = collectPosts(postsRoot);
@@ -73,9 +87,23 @@ export function sidebar(postsRoot: string): Sidebar {
   );
 }
 
-export function postsPlugin(postsRoot: string): RspressPlugin {
+export function postsPlugin(postsRoot: string, siteUrl: string): RspressPlugin {
+  let routes: RouteMeta[] = [];
   return {
     name: 'promptsklad-posts',
+    routeGenerated(r) {
+      routes = r;
+    },
+    // sitemap.xml: все страницы, кроме копий постов в uz/en (они noindex) и 404.
+    afterBuild(config, isProd) {
+      if (!isProd) return;
+      const urls = [...new Set(routes.map((r) => r.routePath))]
+        .filter((p) => !isPostCopy(p) && !p.includes('404'))
+        .sort()
+        .map((p) => `  <url><loc>${siteUrl}${p.replace(/\/index$/, '/')}</loc></url>`);
+      const xml = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls.join('\n')}\n</urlset>\n`;
+      writeFileSync(path.join(config.outDir ?? 'doc_build', 'sitemap.xml'), xml);
+    },
     addPages() {
       const posts = collectPosts(postsRoot);
       // const authors = new Map<string, Post[]>();
@@ -94,7 +122,7 @@ export function postsPlugin(postsRoot: string): RspressPlugin {
           const shareHere = share.replace(`(${pre}/new)`, `(${pre}/new?section=${s.id})`);
           return {
             routePath: `${pre}/${s.id}/`,
-            content: [`# ${s.title[lang]}`, '', s.desc[lang], '', ...(s.extra?.[lang] ? [s.extra[lang], ''] : []), ...(items.length ? items : [UI.empty[lang]]), '', `${shareHere}.`].join('\n'),
+            content: ['---', `description: ${JSON.stringify(s.desc[lang])}`, '---', '', `# ${s.title[lang]}`, '', s.desc[lang], '', ...(s.extra?.[lang] ? [s.extra[lang], ''] : []), ...(items.length ? items : [UI.empty[lang]]), '', `${shareHere}.`].join('\n'),
           };
         });
 

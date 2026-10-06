@@ -49,6 +49,16 @@
 
 Локально (`npm run dev`) `/api/submit` работает всухую с тестовыми ключами Turnstile — на GitHub ничего не уходит.
 
+## SEO
+
+Уже настроено: абсолютные `canonical` и `hreflang`, `sitemap.xml`, `robots.txt`, картинка превью (`og.png`), `description` на каждой странице. Узбекские и английские копии постов — `noindex` с `canonical` на русский оригинал (без дублей).
+
+Чтобы сайт попал в Google:
+1. [Google Search Console](https://search.google.com/search-console) → добавить сайт → подтвердить через meta-тег: код — в env `GOOGLE_SITE_VERIFICATION` в Vercel и передеплоить (или через DNS).
+2. «Файлы Sitemap» → отправить `sitemap.xml`.
+
+Свой домен: задать `SITE_URL` (например `https://promptsklad.uz`) и обновить `content/public/robots.txt`.
+
 ## Локальный запуск
 
 ```bash

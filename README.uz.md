@@ -49,6 +49,16 @@ Bo‘lim ro‘yxatlari va yon panel avtomatik yig‘iladi.
 
 Lokal (`npm run dev`) `/api/submit` Turnstile test kalitlari bilan quruq rejimda ishlaydi — GitHub’ga hech narsa yuborilmaydi.
 
+## SEO
+
+Sozlangan: absolyut `canonical` va `hreflang`, `sitemap.xml`, `robots.txt`, oldindan ko‘rish rasmi (`og.png`), har bir sahifada `description`. Postlarning o‘zbek va ingliz nusxalari — `noindex`, `canonical` rus asliga (dublikatsiz).
+
+Google’ga tushish uchun:
+1. [Google Search Console](https://search.google.com/search-console) → saytni qo‘shish → meta-teg orqali tasdiqlash: kodni Vercel’dagi `GOOGLE_SITE_VERIFICATION` env’ga yozing va qayta deploy qiling (yoki DNS orqali).
+2. Sitemaps → `sitemap.xml` ni yuborish.
+
+O‘z domeningiz: `SITE_URL` ni o‘rnating (masalan `https://promptsklad.uz`) va `content/public/robots.txt` ni yangilang.
+
 ## Lokal ishga tushirish
 
 ```bash

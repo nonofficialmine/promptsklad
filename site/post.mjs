@@ -46,6 +46,8 @@ export function render(values) {
   const fm = [
     '---',
     `title: ${JSON.stringify(title)}`,
+    // Сниппет для поисковиков — из «Для чего».
+    ...(values.purpose?.trim() ? [`description: ${JSON.stringify(oneLine(values.purpose).slice(0, 160))}`] : []),
     `topic: ${JSON.stringify(values.topic)}`,
     `tags: ${JSON.stringify(splitList(values.tags))}`,
     `models: ${JSON.stringify(splitList(values.models))}`,

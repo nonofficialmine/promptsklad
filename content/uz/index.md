@@ -1,5 +1,8 @@
 ---
 pageType: home
+# Для главной Rspress строит <title> как «promptsklad - titleSuffix»
+titleSuffix: Claude Code promptlari, skillari va tajribasi
+description: Claude Code bilan ishlash bo‘yicha promptlar, skillar, hooklar, MCP va keyslar ombori. Ro‘yxatdan o‘tmasdan ulashing.
 
 hero:
   name: promptsklad

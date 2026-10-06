@@ -49,6 +49,16 @@ Section lists and the sidebar are generated automatically.
 
 Locally (`npm run dev`) `/api/submit` runs in dry-run mode with Turnstile test keys — nothing is sent to GitHub.
 
+## SEO
+
+Built in: absolute `canonical` and `hreflang`, `sitemap.xml`, `robots.txt`, Open Graph image (`og.png`), per-page `description`. Uzbek/English copies of posts are `noindex` with `canonical` to the Russian original (no duplicates).
+
+To get indexed by Google:
+1. [Google Search Console](https://search.google.com/search-console) → add the site → verify via meta tag: put the code into the `GOOGLE_SITE_VERIFICATION` env var in Vercel and redeploy (or verify via DNS).
+2. Sitemaps → submit `sitemap.xml`.
+
+Custom domain: set `SITE_URL` (e.g. `https://promptsklad.uz`) and update `content/public/robots.txt`.
+
 ## Run locally
 
 ```bash
