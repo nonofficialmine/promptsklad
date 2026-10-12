@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useLang } from '@rspress/core/runtime';
 import { TAGS, TOPICS, type Lang } from '../i18n';
 import { spec, validate } from '../validate.mjs';
+import { BODY_EXAMPLES } from './bodyExamples';
 import './SubmitForm.css';
 
 declare global {
@@ -275,7 +276,12 @@ export function SubmitForm() {
                 )}
               </select>
             ) : f.kind === 'textarea' ? (
-              <textarea {...common} rows={f.id === 'post_body' ? 10 : 3} maxLength={f.max} />
+              <textarea
+                {...common}
+                rows={f.id === 'post_body' ? 10 : 3}
+                maxLength={f.max}
+                placeholder={f.id === 'post_body' ? (BODY_EXAMPLES[lang] ?? BODY_EXAMPLES.ru)[values.section] : undefined}
+              />
             ) : (
               <input {...common} maxLength={f.max} />
             )}

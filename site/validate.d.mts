@@ -2,3 +2,4 @@ type Field = { id: string; label: string; kind: 'select' | 'multiselect' | 'inpu
 export declare const spec: { repo: string; sections: Record<string, string>; topics: string[]; tags: string[]; fields: Field[] };
 export declare function validate(values: Record<string, string>, lang?: 'ru' | 'uz' | 'en'): Record<string, string>;
 export declare function splitList(s: string | undefined): string[];
+export declare function findSecret(text: string): string | null;

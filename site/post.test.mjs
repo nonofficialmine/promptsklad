@@ -1,8 +1,9 @@
 import { test, beforeEach, afterEach } from 'node:test';
 import assert from 'node:assert/strict';
 import { slugify, render, postPath } from './post.mjs';
-import { spec, validate } from './validate.mjs';
+import { spec, validate, findSecret } from './validate.mjs';
 import { POST } from '../api/submit.ts';
+import { BODY_EXAMPLES } from './components/bodyExamples.ts';
 
 const good = {
   section: 'Промпт',
@@ -109,6 +110,58 @@ test('безопасность: переводы строк в title/имени 
   assert.equal(md.match(/^author/gm).length, 1);
 });
 
+// Ключи собираем из кусков, чтобы сканеры секретов GitHub не приняли тест за утечку.
+const fake = (prefix, n = 40) => prefix + 'a1B2c3D4e5'.repeat(Math.ceil(n / 10)).slice(0, n);
+const KEYS = {
+  anthropic: fake('sk-' + 'ant-api03-'),
+  openai: fake('sk-' + 'proj-'),
+  github: fake('gh' + 'p_', 36),
+  githubPat: fake('github' + '_pat_', 30),
+  aws: 'AKIA' + 'Q3EGRTLMKD7WPZ2N',
+  telegram: '7412589630:' + fake('AA', 33),
+  privateKey: '-----BEGIN ' + 'OPENSSH PRIVATE KEY-----',
+  dbUrl: 'postgres' + '://admin:S3cretPass77@db.host:5432/app',
+  envLine: 'API_KEY' + '=f81a9c2e4b7d6013',
+  jsonPassword: '"password": "' + 'Tr0ub4dor-3xyz"',
+  bearer: 'Authorization: Bearer ' + fake('', 32),
+};
+
+test('ключи и пароли: находим каждый вид', () => {
+  for (const [kind, key] of Object.entries(KEYS)) assert.ok(findSecret(`конфиг:\n${key}\n`), kind);
+});
+
+test('ключи и пароли: заглушки и обычный текст — не ключи', () => {
+  const ok = [
+    '"env": { "GITHUB_PERSONAL_ACCESS_TOKEN": "<ваш токен>" }',
+    'OPENAI_API_KEY=your-api-key-here',
+    'API_KEY=' + 'sk-' + 'x'.repeat(30),
+    'Authorization: Bearer ${GITHUB_TOKEN}',
+    'max_tokens: 4096',
+    'postgres' + '://user:password@localhost/db',
+    'postgres' + '://postgres:postgres@localhost:5432/db',
+    'AKIA' + 'IOSFODNN7EXAMPLE',
+    'Ты — строгий ревьюер. Ниже дифф.',
+    'https://github.com/nonofficialmine/promptsklad',
+  ];
+  for (const s of ok) assert.equal(findSecret(s), null, s);
+});
+
+test('ключи и пароли: ошибка в любом текстовом поле, ключ в ней не целиком', () => {
+  const errs = validate({ ...good, post_body: `Мой конфиг:\n${KEYS.anthropic}`, comment: KEYS.dbUrl });
+  assert.match(errs.post_body, /^Похоже на ключ или пароль \(«sk-ant-a…»\)/);
+  assert.ok(!errs.post_body.includes(KEYS.anthropic));
+  assert.match(errs.comment, /Похоже на ключ/);
+  assert.match(validate({ ...good, usage: KEYS.github }, 'uz').usage, /^Kalit yoki parolga/);
+  assert.match(validate({ ...good, usage: KEYS.github }, 'en').usage, /^Looks like a key/);
+});
+
+test('примеры в поле «Содержимое»: есть у каждого раздела на всех языках и не похожи на ключи', () => {
+  for (const [lang, examples] of Object.entries(BODY_EXAMPLES)) {
+    assert.deepEqual(Object.keys(examples).sort(), Object.keys(spec.sections).sort(), lang);
+    for (const [section, text] of Object.entries(examples)) assert.equal(findSecret(text), null, `${lang}/${section}`);
+  }
+});
+
 test('id полей не совпадают и не пустые; разделы уникальны', () => {
   const ids = spec.fields.map((f) => f.id);
   assert.equal(new Set(ids).size, ids.length);
@@ -176,6 +229,14 @@ test('api: невалидный пост -> 422 с ошибками на язы�
   const res = await POST(req({ values: { ...good, post_title: '' }, captcha: 't', lang: 'en' }));
   assert.equal(res.status, 422);
   assert.equal((await res.json()).errors.post_title, 'Required field');
+});
+
+test('api: ключ в посте -> 422, GitHub и капчу не трогаем', async () => {
+  mockFetch();
+  const res = await POST(req({ values: { ...good, post_body: `Конфиг:\n${KEYS.openai}` }, captcha: 't' }));
+  assert.equal(res.status, 422);
+  assert.match((await res.json()).errors.post_body, /Похоже на ключ/);
+  assert.equal(calls.length, 0);
 });
 
 test('api: honeypot заполнен -> 400', async () => {
