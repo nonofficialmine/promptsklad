@@ -24,6 +24,23 @@
 .psk-done button { justify-self: start; padding: 8px 18px; border: 1px solid var(--rp-c-brand); border-radius: 999px; background: transparent; color: var(--rp-c-brand); cursor: pointer; }
 
 .psk-hint { margin-top: -2px; font-size: 12px; color: var(--rp-c-text-2); }
+
+.psk-actions { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+.psk-form .psk-secondary { border: 1px solid var(--rp-c-brand); background: transparent; color: var(--rp-c-brand); }
+.psk-form .psk-secondary:hover { background: var(--rp-c-brand-tint); }
+.psk-form .psk-link { padding: 0; border-radius: 0; font-weight: 500; background: none; color: var(--rp-c-brand); text-decoration: underline; }
+.psk-form .psk-link:hover { background: none; }
+
+/* Предпросмотр: похоже на страницу поста, но в рамке — чтобы не спутать с формой. */
+.psk-preview { display: grid; gap: 12px; padding: 20px; border: 1px dashed var(--rp-c-brand); border-radius: 12px; overflow-wrap: anywhere; }
+.psk-preview p { margin: 0; line-height: 1.7; }
+.psk-preview__title { font-size: 28px; font-weight: 700; line-height: 1.3; }
+.psk-preview__text { white-space: pre-line; }
+.psk-preview pre {
+  margin: 0; padding: 14px 16px; border-radius: 8px; overflow-x: auto;
+  background: var(--rp-c-bg-soft); font-family: var(--rp-font-family-mono, monospace); font-size: 13px; line-height: 1.6;
+}
+.psk-preview pre code { padding: 0; background: none; white-space: pre; }
 /* перебиваем стили темы для <details> в документации */
 .psk-multi { position: relative; margin: 0 !important; padding: 0 !important; border: 0 !important; background: none !important; }
 .psk-multi > summary {

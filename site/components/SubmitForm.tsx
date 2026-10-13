@@ -1,8 +1,10 @@
-import { useEffect, useRef, useState } from 'react';
+import { Fragment, useEffect, useRef, useState } from 'react';
 import { useLang } from '@rspress/core/runtime';
 import { TAGS, TOPICS, type Lang } from '../i18n';
 import { spec, validate } from '../validate.mjs';
+import { blocks } from '../post.mjs';
 import { BODY_EXAMPLES } from './bodyExamples';
+import { clearDraft, loadDraft, saveDraft } from './draft';
 import './SubmitForm.css';
 
 declare global {
@@ -33,6 +35,12 @@ const T = {
     captcha: 'Подтвердите, что вы не робот.',
     failed: 'Не удалось отправить. Попробуйте ещё раз чуть позже.',
     fix: 'Исправьте поля, отмеченные красным.',
+    preview: 'Посмотреть, как будет выглядеть',
+    hidePreview: 'Скрыть предпросмотр',
+    previewNote: 'Так пост будет выглядеть на сайте после модерации.',
+    noTitle: 'Без названия',
+    restored: 'Мы восстановили ваш черновик.',
+    clear: 'Очистить форму',
   },
   uz: {
     labels: {
@@ -51,6 +59,12 @@ const T = {
     captcha: 'Robot emasligingizni tasdiqlang.',
     failed: 'Yuborib bo‘lmadi. Birozdan so‘ng qayta urinib ko‘ring.',
     fix: 'Qizil bilan belgilangan maydonlarni tuzating.',
+    preview: 'Qanday ko‘rinishini ko‘rish',
+    hidePreview: 'Ko‘rib chiqishni yashirish',
+    previewNote: 'Post moderatsiyadan keyin saytda shunday ko‘rinadi.',
+    noTitle: 'Nomsiz',
+    restored: 'Qoralamangiz tiklandi.',
+    clear: 'Formani tozalash',
   },
   en: {
     labels: {
@@ -69,6 +83,12 @@ const T = {
     captcha: 'Please confirm you are not a robot.',
     failed: 'Could not submit. Please try again a bit later.',
     fix: 'Fix the fields marked in red.',
+    preview: 'Preview',
+    hidePreview: 'Hide preview',
+    previewNote: 'This is how the post will look on the site after moderation.',
+    noTitle: 'Untitled',
+    restored: 'We restored your draft.',
+    clear: 'Clear the form',
   },
 };
 
@@ -76,11 +96,46 @@ type Values = Record<string, string>;
 type Status = { kind: 'idle' | 'sending' | 'done' | 'error'; text?: string; link?: string };
 
 /** ?section=hooks -> «Хук» */
-function initialSection(): string {
-  const keys = Object.keys(spec.sections);
-  if (typeof window === 'undefined') return keys[0];
+function sectionFromUrl(): string | undefined {
   const id = new URLSearchParams(window.location.search).get('section');
-  return keys.find((k) => spec.sections[k] === id) ?? keys[0];
+  return Object.keys(spec.sections).find((k) => spec.sections[k] === id);
+}
+
+/** Карточка поста так, как её покажет сайт: те же куски, что идут в .md. */
+function PostPreview({ values, t }: { values: Values; t: (typeof T)['ru'] }) {
+  return (
+    <div className="psk-preview">
+      <small className="psk-hint">{t.previewNote}</small>
+      {blocks(values).map((b, i) => {
+        if (b.kind === 'title') return <div key={i} className="psk-preview__title">{b.text || <span className="psk-placeholder">{t.noTitle}</span>}</div>;
+        if (b.kind === 'meta')
+          return b.items.length ? (
+            <p key={i}>
+              {b.items.map(([k, v], j) => (
+                <Fragment key={k}>
+                  {j > 0 && ' · '}
+                  <strong>{k}:</strong> {v}
+                </Fragment>
+              ))}
+            </p>
+          ) : null;
+        if (b.kind === 'field')
+          return (
+            <p key={i}>
+              <strong>{b.label}:</strong> {b.text}
+            </p>
+          );
+        if (!b.text) return null;
+        return b.kind === 'code' ? (
+          <pre key={i}>
+            <code>{b.text}</code>
+          </pre>
+        ) : (
+          <p key={i} className="psk-preview__text">{b.text}</p>
+        );
+      })}
+    </div>
+  );
 }
 
 export function SubmitForm() {
@@ -90,10 +145,22 @@ export function SubmitForm() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [status, setStatus] = useState<Status>({ kind: 'idle' });
   const [captcha, setCaptcha] = useState('');
+  const [restored, setRestored] = useState(false);
+  const [preview, setPreview] = useState(false);
   const widget = useRef<HTMLDivElement>(null);
   const widgetId = useRef<string | undefined>(undefined);
 
-  useEffect(() => setValues((v) => ({ section: initialSection(), ...v })), []);
+  // Раздел из ссылки (?section=) важнее раздела из черновика.
+  useEffect(() => {
+    const draft = loadDraft();
+    if (draft) setRestored(true);
+    setValues((v) => ({ ...draft, section: sectionFromUrl() ?? draft?.section ?? Object.keys(spec.sections)[0], ...v }));
+  }, []);
+
+  // Пока раздела нет, черновик ещё не загружен — не затираем его пустой формой.
+  useEffect(() => {
+    if (values.section) saveDraft(values);
+  }, [values]);
 
   // Капча Cloudflare Turnstile: грузим скрипт один раз, рендерим явно (заново — после «Отправить ещё»).
   const formShown = status.kind !== 'done';
@@ -144,6 +211,14 @@ export function SubmitForm() {
     setValues({ section: values.section });
     setStatus({ kind: 'idle' });
     setCaptcha('');
+    setPreview(false);
+  };
+
+  const clearForm = () => {
+    setValues({ section: values.section });
+    setErrors({});
+    setRestored(false);
+    setPreview(false);
   };
 
   const submit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -165,7 +240,11 @@ export function SubmitForm() {
         body: JSON.stringify({ values, captcha, lang, website }),
       });
       const data = await res.json().catch(() => ({}));
-      if (res.ok) return setStatus({ kind: 'done', text: data.dryRun ? t.doneDry : t.done, link: data.prUrl });
+      if (res.ok) {
+        clearDraft();
+        setRestored(false);
+        return setStatus({ kind: 'done', text: data.dryRun ? t.doneDry : t.done, link: data.prUrl });
+      }
       if (res.status === 422 && data.errors) {
         setErrors(data.errors);
         return setStatus({ kind: 'error', text: t.fix });
@@ -196,6 +275,14 @@ export function SubmitForm() {
 
   return (
     <form className="psk-form" onSubmit={submit} noValidate>
+      {restored && (
+        <p className="psk-notice" role="status">
+          {t.restored}{' '}
+          <button type="button" className="psk-link" onClick={clearForm}>
+            {t.clear}
+          </button>
+        </p>
+      )}
       {spec.fields.map((f) => {
         const common = {
           id: `f-${f.id}`,
@@ -292,14 +379,20 @@ export function SubmitForm() {
       {/* honeypot: скрыто от людей, боты заполняют */}
       <input className="psk-hp" name="website" tabIndex={-1} autoComplete="off" aria-hidden="true" />
       <div ref={widget} className="psk-captcha" />
-      <button type="submit" disabled={status.kind === 'sending'}>
-        {status.kind === 'sending' ? t.sending : t.submit}
-      </button>
+      <div className="psk-actions">
+        <button type="submit" disabled={status.kind === 'sending'}>
+          {status.kind === 'sending' ? t.sending : t.submit}
+        </button>
+        <button type="button" className="psk-secondary" aria-expanded={preview} onClick={() => setPreview((p) => !p)}>
+          {preview ? t.hidePreview : t.preview}
+        </button>
+      </div>
       {status.kind === 'error' && (
         <p className="psk-notice psk-notice--error" role="alert">
           {status.text}
         </p>
       )}
+      {preview && <PostPreview values={values} t={t} />}
     </form>
   );
 }

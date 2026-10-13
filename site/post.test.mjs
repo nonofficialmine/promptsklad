@@ -1,9 +1,10 @@
 import { test, beforeEach, afterEach } from 'node:test';
 import assert from 'node:assert/strict';
-import { slugify, render, postPath } from './post.mjs';
+import { slugify, render, postPath, blocks } from './post.mjs';
 import { spec, validate, findSecret } from './validate.mjs';
 import { POST } from '../api/submit.ts';
 import { BODY_EXAMPLES } from './components/bodyExamples.ts';
+import { loadDraft, saveDraft, clearDraft } from './components/draft.ts';
 
 const good = {
   section: 'Промпт',
@@ -159,6 +160,46 @@ test('примеры в поле «Содержимое»: есть у кажд�
   for (const [lang, examples] of Object.entries(BODY_EXAMPLES)) {
     assert.deepEqual(Object.keys(examples).sort(), Object.keys(spec.sections).sort(), lang);
     for (const [section, text] of Object.entries(examples)) assert.equal(findSecret(text), null, `${lang}/${section}`);
+  }
+});
+
+test('предпросмотр: куски карточки по порядку, как в .md', () => {
+  const b = blocks({ ...good, author_name: 'Али', why: 'w', comment: 'c' });
+  assert.deepEqual(b.map((x) => x.kind + (x.label ? ':' + x.label : '')), [
+    'title', 'meta', 'field:Автор', 'field:Для чего', 'code', 'field:Почему работает', 'field:Комментарий',
+  ]);
+  assert.deepEqual(b[1].items, [['Тема', 'Разработка'], ['Теги', 'SQL, код-ревью']]);
+  const c = blocks({ ...good, section: 'Кейс', why: 'w' });
+  assert.ok(c.some((x) => x.kind === 'text') && c.some((x) => x.label === 'Выводы'));
+});
+
+test('предпросмотр: полупустая форма не ломается', () => {
+  const b = blocks({ section: 'Промпт' });
+  assert.equal(b[0].text, '');
+  assert.deepEqual(b[1].items, []);
+  assert.equal(b.find((x) => x.kind === 'code').text, '');
+});
+
+test('черновик: сохраняем, читаем, удаляем', () => {
+  const store = new Map();
+  globalThis.localStorage = { getItem: (k) => store.get(k) ?? null, setItem: (k, v) => store.set(k, v), removeItem: (k) => store.delete(k) };
+  try {
+    saveDraft({ section: 'Хук', topic: 'dev' });
+    assert.equal(loadDraft(), null, 'без текста — не черновик');
+    saveDraft({ section: 'Хук', post_title: 'Мой хук' });
+    assert.deepEqual(loadDraft(), { section: 'Хук', post_title: 'Мой хук' });
+    store.set('psk-draft', JSON.stringify({ section: 'Мем', post_title: 'x', evil: 'y', tags: ['a'] }));
+    assert.deepEqual(loadDraft(), { post_title: 'x' }, 'чужие поля и неизвестный раздел отбрасываем');
+    store.set('psk-draft', '{битый');
+    assert.equal(loadDraft(), null);
+    clearDraft();
+    assert.equal(store.size, 0);
+    globalThis.localStorage = { getItem: () => { throw new Error('denied'); }, setItem: () => { throw new Error('denied'); }, removeItem: () => { throw new Error('denied'); } };
+    assert.equal(loadDraft(), null, 'нет доступа к хранилищу — форма без черновика');
+    saveDraft({ section: 'Хук', post_title: 'x' });
+    clearDraft();
+  } finally {
+    delete globalThis.localStorage;
   }
 });
 

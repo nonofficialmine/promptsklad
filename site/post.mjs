@@ -38,9 +38,35 @@ function fence(s) {
 
 const oneLine = (s) => (s ?? '').replace(/\s+/g, ' ').trim();
 
+/** Тело карточки по кускам. Из них собирается и .md (render), и предпросмотр в форме. */
+export function blocks(values) {
+  const section = spec.sections[values.section];
+  const name = oneLine(values.author_name);
+  const topic = TOPICS[values.topic]?.ru ?? values.topic;
+  const tags = splitList(values.tags).map((t) => TAGS[t]?.ru ?? t);
+  const field = (label, v) => (v?.trim() ? [{ kind: 'field', label, text: v.trim() }] : []);
+  return [
+    { kind: 'title', text: oneLine(values.post_title) },
+    { kind: 'meta', items: [...(topic ? [['Тема', topic]] : []), ...(tags.length ? [['Теги', tags.join(', ')]] : [])] },
+    ...(name ? [{ kind: 'field', label: 'Автор', text: name }] : []),
+    ...field('Для чего', values.purpose),
+    ...field('Как использовать', values.usage),
+    // Промпт/конфиг — как есть в code-блоке; описание кейса — текстом (markdown).
+    { kind: section !== 'cases' ? 'code' : 'text', text: (values.post_body ?? '').trim() },
+    ...field(section === 'cases' ? 'Выводы' : 'Почему работает', values.why),
+    ...field('Комментарий', values.comment),
+  ];
+}
+
+const toMarkdown = (b) => {
+  if (b.kind === 'title') return `# ${escapeText(b.text)}`;
+  if (b.kind === 'meta') return b.items.map(([k, v]) => `**${k}:** ${v}`).join(' · ');
+  if (b.kind === 'field') return `**${b.label}:** ${escapeText(b.text)}`;
+  return b.kind === 'code' ? fence(b.text) : escapeText(b.text);
+};
+
 /** values -> текст карточки */
 export function render(values) {
-  const section = spec.sections[values.section];
   const title = oneLine(values.post_title);
   const name = oneLine(values.author_name);
   const fm = [
@@ -54,20 +80,7 @@ export function render(values) {
     ...(name ? [`author_name: ${JSON.stringify(name)}`] : []),
     '---',
   ];
-  const parts = [`# ${escapeText(title)}`];
-  const tags = splitList(values.tags).map((t) => TAGS[t]?.ru ?? t);
-  parts.push([`**Тема:** ${TOPICS[values.topic]?.ru ?? values.topic}`, ...(tags.length ? [`**Теги:** ${tags.join(', ')}`] : [])].join(' · '));
-  if (name) parts.push(`**Автор:** ${escapeText(name)}`);
-  if (values.purpose?.trim()) parts.push(`**Для чего:** ${escapeText(values.purpose.trim())}`);
-  if (values.usage?.trim()) parts.push(`**Как использовать:** ${escapeText(values.usage.trim())}`);
-  // Промпт/конфиг — как есть в code-блоке; описание кейса — экранированный markdown.
-  parts.push(section !== 'cases' ? fence(values.post_body.trim()) : escapeText(values.post_body.trim()));
-  if (values.why?.trim()) {
-    const label = section === 'cases' ? 'Выводы' : 'Почему работает';
-    parts.push(`**${label}:** ${escapeText(values.why.trim())}`);
-  }
-  if (values.comment?.trim()) parts.push(`**Комментарий:** ${escapeText(values.comment.trim())}`);
-  return `${fm.join('\n')}\n\n${parts.join('\n\n')}\n`;
+  return `${fm.join('\n')}\n\n${blocks(values).map(toMarkdown).join('\n\n')}\n`;
 }
 
 /** Путь файла: дата + случайный суффикс исключают коллизии без чтения репозитория. */
