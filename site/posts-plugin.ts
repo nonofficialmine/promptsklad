@@ -1,14 +1,32 @@
 // Генерирует страницы из posts/<раздел>/*.md для каждого языка: сами посты и списки разделов.
+// На каждом языке отдаётся перевод (<slug>.<lang>.md), если он есть, иначе — оригинал автора.
 // Плюс боковая панель со всеми разделами — переключение между ними в 1 клик.
 // Страницы авторов (/authors/*) пока отключены — см. закомментированный блок ниже.
 import { existsSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import * as path from 'node:path';
 import type { RouteMeta, RspressPlugin, Sidebar } from '@rspress/core';
 import { LANGS, SECTIONS, UI, prefix } from './i18n';
+import { detectLang, isTranslationFile, originalRoute, translationFile } from './translations.mjs';
 
 const NICK = /^[A-Za-z0-9-]{1,39}$/;
 
-type Post = { title: string; slug: string; section: string; file: string; author?: string };
+type Version = { file: string; title: string };
+type Post = {
+  title: string;
+  slug: string;
+  section: string;
+  file: string;
+  author?: string;
+  /** Язык оригинала (автора). */
+  lang: string;
+  /** Версии по языкам: оригинал + готовые переводы. */
+  versions: Record<string, Version>;
+};
+
+/** Посты по ключу «раздел/slug» — для SEO-правил в head (заполняется collectPosts). */
+const index = new Map<string, Post>();
+
+const versionFor = (p: Post, lang: string): Version => p.versions[lang] ?? { file: p.file, title: p.title };
 
 // Страницы из addPages компилируются как MDX: экранируем и HTML, и выражения {}.
 const escapeText = (s: string) =>
@@ -37,17 +55,28 @@ export function collectPosts(postsRoot: string): Post[] {
     const dir = path.join(postsRoot, section);
     if (!existsSync(dir)) continue;
     for (const name of readdirSync(dir).sort()) {
-      if (!name.endsWith('.md')) continue;
+      if (!name.endsWith('.md') || isTranslationFile(name)) continue;
       const file = path.join(dir, name);
       const md = readFileSync(file, 'utf8');
       const author = frontmatterValue(md, 'author');
-      posts.push({
-        title: frontmatterValue(md, 'title') ?? name,
+      const title = frontmatterValue(md, 'title') ?? name;
+      const lang = frontmatterValue(md, 'lang') ?? detectLang(md.replace(/^---\n[\s\S]*?\n---\n/, ''));
+      const versions: Record<string, Version> = { [lang]: { file, title } };
+      for (const l of LANGS) {
+        const tr = translationFile(file, l);
+        if (l !== lang && existsSync(tr)) versions[l] = { file: tr, title: frontmatterValue(readFileSync(tr, 'utf8'), 'title') ?? title };
+      }
+      const post: Post = {
+        title,
         slug: name.replace(/\.md$/, ''),
         section,
         file,
         author: author && NICK.test(author) ? author : undefined,
-      });
+        lang,
+        versions,
+      };
+      posts.push(post);
+      index.set(`${section}/${post.slug}`, post);
     }
   }
   return posts;
@@ -56,15 +85,23 @@ export function collectPosts(postsRoot: string): Post[] {
 const SECTION_IDS = SECTIONS.map((s) => s.id).join('|');
 const POST_ROUTE = new RegExp(`^(/(?:uz|en))?/(${SECTION_IDS})/[^/]+$`);
 
-/** Копия поста в uz/en (тот же текст, что и у русского оригинала) — для SEO это дубль. */
-export function isPostCopy(routePath: string): boolean {
+function postAt(routePath: string): { post: Post; lang: string } | undefined {
   const m = POST_ROUTE.exec(routePath);
-  return !!m?.[1] && !routePath.endsWith('/index');
+  if (!m || routePath.endsWith('/index')) return undefined;
+  const post = index.get(`${m[2]}/${routePath.split('/').pop()}`);
+  return post && { post, lang: m[1]?.slice(1) ?? 'ru' };
 }
 
-/** URL русского оригинала для копии поста; для остальных страниц — сам маршрут. */
+/** Пост на языке, на который его ещё не перевели (показан оригинал) — для SEO это дубль. */
+export function isPostCopy(routePath: string): boolean {
+  const at = postAt(routePath);
+  return !!at && !at.post.versions[at.lang];
+}
+
+/** Для непереведённой копии — URL оригинала; для остальных страниц — сам маршрут. */
 export function canonicalPath(routePath: string): string {
-  return isPostCopy(routePath) ? routePath.replace(/^\/(uz|en)/, '') : routePath;
+  const at = postAt(routePath);
+  return at && isPostCopy(routePath) ? originalRoute(at.post.lang, at.post.section, at.post.slug) : routePath;
 }
 
 /** Боковая панель: все разделы и их посты, для каждого языка. */
@@ -80,7 +117,7 @@ export function sidebar(postsRoot: string): Sidebar {
           link: `${pre}/${s.id}/`,
           collapsible: true,
           collapsed: true,
-          items: posts.filter((p) => p.section === s.id).map((p) => ({ text: p.title, link: `${pre}/${s.id}/${p.slug}` })),
+          items: posts.filter((p) => p.section === s.id).map((p) => ({ text: versionFor(p, lang).title, link: `${pre}/${s.id}/${p.slug}` })),
         })),
       ];
     }),
@@ -94,7 +131,7 @@ export function postsPlugin(postsRoot: string, siteUrl: string): RspressPlugin {
     routeGenerated(r) {
       routes = r;
     },
-    // sitemap.xml: все страницы, кроме копий постов в uz/en (они noindex) и 404.
+    // sitemap.xml: все страницы, кроме непереведённых копий постов (они noindex) и 404.
     afterBuild(config, isProd) {
       if (!isProd) return;
       const urls = [...new Set(routes.map((r) => r.routePath))]
@@ -112,10 +149,10 @@ export function postsPlugin(postsRoot: string, siteUrl: string): RspressPlugin {
 
       return LANGS.flatMap((lang) => {
         const pre = prefix(lang);
-        const link = (p: Post) => `- [${escapeText(p.title)}](${pre}/${p.section}/${p.slug})`;
+        const link = (p: Post) => `- [${escapeText(versionFor(p, lang).title)}](${pre}/${p.section}/${p.slug})`;
         const share = UI.shareVia[lang].replace(/\[(.+)\]/, `[$1](${pre}/new)`);
 
-        const postPages = posts.map((p) => ({ routePath: `${pre}/${p.section}/${p.slug}`, filepath: p.file }));
+        const postPages = posts.map((p) => ({ routePath: `${pre}/${p.section}/${p.slug}`, filepath: versionFor(p, lang).file }));
 
         const sectionPages = SECTIONS.map((s) => {
           const items = posts.filter((p) => p.section === s.id).map(link);

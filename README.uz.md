@@ -48,6 +48,10 @@ Bo‘lim ro‘yxatlari va yon panel avtomatik yig‘iladi.
 
 Lokal (`npm run dev`) `/api/submit` quruq rejimda ishlaydi — GitHub’ga hech narsa yuborilmaydi.
 
+## Tarjimalar
+
+Mualliflar o‘z tilida yozadi. Post `main` ga tushgach, **Translate posts** GitHub Action uni GitHub Models orqali qolgan ikki tilga tarjima qiladi (bepul, kartasiz; kunlik so‘rov limiti — qolgani har kungi ishga tushishda bajariladi). Tarjimalar asl nusxa yonida: `posts/<bo‘lim>/<slug>.<lang>.md`, «mashina tarjimasi» belgisi bilan; kod va konfiglar tarjima qilinmaydi. Tarjima bo‘lmaguncha asl nusxa ko‘rsatiladi (`noindex` bilan). Qo‘lda ishga tushirish: Actions → Translate posts → Run workflow.
+
 ## SEO
 
 Sozlangan: absolyut `canonical` va `hreflang`, `sitemap.xml`, `robots.txt`, oldindan ko‘rish rasmi (`og.png`), har bir sahifada `description`. Postlarning o‘zbek va ingliz nusxalari — `noindex`, `canonical` rus asliga (dublikatsiz).

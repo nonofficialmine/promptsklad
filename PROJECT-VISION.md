@@ -24,7 +24,7 @@
 - Форма: обязательны только Раздел, Тема, Название, Содержимое. Тема — сфера работы (одна), теги — задачи и инструменты (до 5, из списка), плюс комментарий от автора.
 - Публикация: форма (`site/components/SubmitForm.tsx`) → `api/submit.ts` (Vercel Function: honeypot + время заполнения ≥3 с, валидация, ветка + файл + PR). Карточка — `site/post.mjs`, валидация общая — `site/validate.mjs`.
 - `site/posts-plugin.ts` генерирует из `posts/<раздел>/*.md` посты, списки разделов и боковую панель для каждого языка. Страницы авторов закомментированы.
-- Языки: RU (по умолчанию), UZ, EN — `content/{ru,uz,en}/`, словарь `site/i18n.ts`. Посты не переводятся.
+- Языки: RU (по умолчанию), UZ, EN — `content/{ru,uz,en}/`, словарь `site/i18n.ts`. Посты переводятся машинно после мержа: `.github/workflows/translate.yml` + `scripts/translate.mjs` (GitHub Models, бесплатно) → `posts/<раздел>/<slug>.<lang>.md`; логика — `site/translations.mjs`.
 - Главная: сессия Claude Code в окне терминала (`site/components/TerminalHub.tsx`): стартовая рамка с маскотом, живая строка ввода и меню slash-команд (фильтр, ↑↓, ⏎). Поиск — по центру шапки, клавиша «/».
 - Хостинг: Vercel (`vercel.json`, деплой на каждый пуш). `ci.yml` — тесты + сборка.
 - Docker: node build → nginx static, `/health`.

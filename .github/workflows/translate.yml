@@ -1,0 +1,40 @@
+name: Translate posts
+
+# Бесплатно: GitHub Models (лимит запросов в день) + Actions (публичный репозиторий).
+# Новые посты переводятся после попадания в main; при упоре в лимит — догоняет по расписанию.
+on:
+  push:
+    branches: [main]
+    paths: ['posts/**']
+  schedule:
+    - cron: '17 3 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  models: read
+
+concurrency:
+  group: translate
+  cancel-in-progress: false
+
+jobs:
+  translate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - name: Перевод недостающих постов
+        run: node scripts/translate.mjs
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+      - name: Коммит переводов
+        run: |
+          git add posts
+          git diff --cached --quiet && { echo "новых переводов нет"; exit 0; }
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "Машинные переводы постов"
+          git pull --rebase
+          git push
