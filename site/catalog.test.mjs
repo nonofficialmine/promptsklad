@@ -2,15 +2,13 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { catalog, catalogPage, catalogPages, catalogRoute } from './catalog.mjs';
 
-test('каталог: у каждого плагина есть репозиторий, команда установки, ссылка на HOL и описание на трёх языках', () => {
+test('каталог: у каждого плагина есть репозиторий, команда установки и описание на трёх языках', () => {
   const ids = new Set();
   for (const p of catalog.plugins) {
     assert.ok(!ids.has(p.id), `повтор ${p.id}`);
     ids.add(p.id);
     assert.match(p.repo, /^[\w.-]+\/[\w.-]+$/, `${p.id}: repo`);
     assert.match(p.install, /^[\w.-]+@[\w.-]+$/, `${p.id}: install`);
-    assert.match(p.hol, /^https:\/\/hol\.org\/registry\/plugins\//, `${p.id}: hol`);
-    assert.equal(p.safety, 'safe', `${p.id}: только safe`);
     assert.match(p.updated, /^\d{4}-\d{2}-\d{2}$/, `${p.id}: updated`);
     for (const lang of ['ru', 'uz', 'en']) assert.ok(p.desc[lang]?.trim(), `${p.id}: нет описания ${lang}`);
   }
@@ -26,6 +24,14 @@ test('каталог: на каждой странице источник, ли�
     }
   }
   assert.deepEqual(catalogPages().map((p) => p.routePath), ['/catalog', '/uz/catalog', '/en/catalog']);
+});
+
+test('каталог: HOL упоминается только в строке об источнике данных (её требует лицензия)', () => {
+  for (const { routePath, content } of catalogPages()) {
+    const lines = content.split('\n').filter((l) => /\bhol\b|hol\.org|hol-plugin/i.test(l));
+    assert.equal(lines.length, 1, `${routePath}: ${lines.join(' | ')}`);
+    assert.match(lines[0], /^<small>.*hol-plugin-security.*Apache-2\.0/, routePath);
+  }
   assert.equal(catalogRoute('ru'), '/catalog');
 });
 

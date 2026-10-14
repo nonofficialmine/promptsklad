@@ -119,7 +119,7 @@ export function sidebar(postsRoot: string): Sidebar {
           collapsible: true,
           collapsed: true,
           items: [
-            // Каталог чужих плагинов (HOL Registry) — первым пунктом в «Плагинах».
+            // Каталог чужих плагинов — первым пунктом в «Плагинах».
             ...(s.id === 'plugins' ? [{ text: catalogLabel(lang), link: catalogRoute(lang) }] : []),
             ...posts.filter((p) => p.section === s.id).map((p) => ({ text: versionFor(p, lang).title, link: `${pre}/${s.id}/${p.slug}` })),
           ],

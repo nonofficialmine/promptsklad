@@ -5,7 +5,7 @@
     "dataset": "https://huggingface.co/datasets/HashgraphOnline/hol-plugin-security",
     "license": "Apache-2.0",
     "snapshot": "2026-08-17",
-    "selection": "ecosystems: claude-code, safety_label: safe, .claude-plugin/marketplace.json в репозитории (проверено 2026-10-14)"
+    "selection": "ecosystems: claude-code, safety_label: safe, .claude-plugin/marketplace.json в репозитории (проверено 2026-10-14); без HOL Guard (продукт самого HOL)"
   },
   "plugins": [
     {
@@ -15,10 +15,7 @@
       "repo": "echoVic/boss-skill",
       "install": "boss@boss-skill",
       "stars": 547,
-      "trust": 90,
-      "safety": "safe",
       "updated": "2026-08-16",
-      "hol": "https://hol.org/registry/plugins/echovic%2Fboss",
       "desc": {
         "en": "BMAD pipeline plugin that orchestrates a full requirements-to-deploy workflow across nine specialist agents with an auditable runtime DAG and quality gates, for Claude Code, Codex, OpenClaw, and Antigravity.",
         "ru": "Конвейер BMAD: ведёт задачу от требований до выкладки силами девяти агентов-специалистов. Граф шагов можно проверить, на этапах стоят контрольные точки качества. Для Claude Code, Codex, OpenClaw и Antigravity.",
@@ -32,10 +29,7 @@
       "repo": "jturntdev/krypton",
       "install": "krypton@krypton-dev",
       "stars": 128,
-      "trust": 87,
-      "safety": "safe",
       "updated": "2026-07-24",
-      "hol": "https://hol.org/registry/plugins/jturntdev%2Fkrypton",
       "desc": {
         "en": "Goal-based planning and proof gate for Codex and Claude Code that turns requests into ownership, cutover, review-gate, and acceptance-evidence plans.",
         "ru": "Планирование от цели и «ворота доказательств» для Codex и Claude Code: превращает запрос в план с ответственными, порядком переключения, проверками и доказательствами приёмки.",
@@ -49,10 +43,7 @@
       "repo": "archcore-ai/plugin",
       "install": "archcore@archcore-plugins",
       "stars": 52,
-      "trust": 85,
-      "safety": "safe",
       "updated": "2026-08-14",
-      "hol": "https://hol.org/registry/plugins/archcore%2Farchcore",
       "desc": {
         "en": "Gives coding agents the architecture, rules, and prior decisions of the repo via skills, hooks, and MCP — so new changes land where the project says they belong across Claude Code, Cursor, and Codex CLI.",
         "ru": "Даёт агентам архитектуру, правила и прошлые решения репозитория через скиллы, хуки и MCP. Новые изменения ложатся туда, где им место по замыслу проекта. Claude Code, Cursor и Codex CLI.",
@@ -66,10 +57,7 @@
       "repo": "Kanevry/session-orchestrator",
       "install": "session-orchestrator@kanevry",
       "stars": 46,
-      "trust": 88,
-      "safety": "safe",
       "updated": "2026-08-15",
-      "hol": "https://hol.org/registry/plugins/bernhard-goetzendorfer%2Fsession-orchestrator",
       "desc": {
         "en": "Session orchestration for Claude Code, Codex, and Cursor IDE — structured planning, wave-based execution, VCS integration (GitLab + GitHub), quality gates, and clean session close-out with issue tracking.",
         "ru": "Управление рабочей сессией в Claude Code, Codex и Cursor: план, выполнение волнами, работа с GitLab и GitHub, проверки качества и аккуратное закрытие сессии с задачами в трекере.",
@@ -83,10 +71,7 @@
       "repo": "dadwadw233/claude-code-harness",
       "install": "claude-code-harness@claude-code-harness",
       "stars": 11,
-      "trust": 87,
-      "safety": "safe",
       "updated": "2026-04-05",
-      "hol": "https://hol.org/registry/plugins/yuanhong-yu%2Fclaude-code-harness",
       "desc": {
         "en": "Harness blueprint skill for turning vague agent ideas into concrete designs for request assembly, control loops, memory, permissions, recovery, and extension planes.",
         "ru": "Скилл-чертёж: превращает размытую идею агента в конкретный проект. Описывает сборку запросов, цикл управления, память, разрешения, восстановление после сбоев и расширения.",
@@ -100,31 +85,11 @@
       "repo": "Habib0x0/spec-driven-plugin",
       "install": "spec-driven@spec-driven",
       "stars": 10,
-      "trust": 86,
-      "safety": "safe",
       "updated": "2026-05-18",
-      "hol": "https://hol.org/registry/plugins/habib0x%2Fspec-driven",
       "desc": {
         "en": "Three-phase Requirements → Design → Tasks workflow for Claude Code and Codex — EARS notation acceptance criteria, autonomous execution loop, cross-spec dependencies, and post-implementation acceptance testing.",
         "ru": "Работа в три фазы: требования → проект → задачи. Критерии приёмки в нотации EARS, автономный цикл выполнения, зависимости между спецификациями и приёмочные тесты после реализации. Claude Code и Codex.",
         "uz": "Uch bosqichli ish: talablar → loyiha → vazifalar. EARS yozuvidagi qabul mezonlari, avtonom bajarish sikli, spetsifikatsiyalar orasidagi bog‘liqliklar va amalga oshirilgandan keyingi qabul testlari. Claude Code va Codex."
-      }
-    },
-    {
-      "id": "hol-guard",
-      "name": "HOL Guard",
-      "author": "Hashgraph Online",
-      "repo": "hashgraph-online/hol-guard-plugin",
-      "install": "hol-guard@hol-guard",
-      "stars": 3,
-      "trust": 92,
-      "safety": "safe",
-      "updated": "2026-08-16",
-      "hol": "https://hol.org/registry/plugins/hashgraph-online%2Fhol-guard-plugin",
-      "desc": {
-        "en": "AI antivirus workflow for Codex, Claude Code, Cursor, Gemini, OpenCode, MCP servers, skills, and plugin release checks with local approvals and receipts.",
-        "ru": "«Антивирус» для работы с ИИ от авторов HOL Registry: проверяет MCP-серверы, скиллы и плагины перед выпуском, с локальными подтверждениями и отчётами. Codex, Claude Code, Cursor, Gemini и OpenCode.",
-        "uz": "HOL Registry mualliflaridan AI bilan ishlash uchun «antivirus»: MCP-serverlar, skill va plaginlarni chiqarishdan oldin tekshiradi, lokal tasdiqlash va hisobotlar bilan. Codex, Claude Code, Cursor, Gemini va OpenCode."
       }
     },
     {
@@ -134,10 +99,7 @@
       "repo": "vinicq/falsegreen-skill",
       "install": "falsegreen-skill@falsegreen",
       "stars": 2,
-      "trust": 92,
-      "safety": "safe",
       "updated": "2026-08-11",
-      "hol": "https://hol.org/registry/plugins/vinicius-queiroz%2Ffalsegreen-skill",
       "desc": {
         "en": "Finds tests that stay green when the code they cover is broken, applying six ordered judgments over Python, TypeScript, JavaScript, and Robot Framework suites in Codex CLI and Claude Code.",
         "ru": "Находит тесты, которые остаются зелёными, даже когда проверяемый ими код сломан. Шесть последовательных проверок для Python, TypeScript, JavaScript и Robot Framework. Codex CLI и Claude Code.",
@@ -151,10 +113,7 @@
       "repo": "yyykf/spellbook-skills",
       "install": "spellbook-skills@spellbook-marketplace",
       "stars": 1,
-      "trust": 87,
-      "safety": "safe",
       "updated": "2026-08-15",
-      "hol": "https://hol.org/registry/plugins/code4j%2Fspellbook-skills",
       "desc": {
         "en": "Practical Claude Code and Codex skills for worktrees, PR/MR automation, review cleanup, YApi lookup, and Java DDD guidance.",
         "ru": "Практичные скиллы для Claude Code и Codex: git worktree, автоматизация PR/MR, разбор замечаний ревью, поиск в YApi и подсказки по DDD для Java.",
@@ -168,10 +127,7 @@
       "repo": "sh-ai-x/dev-harness-kit",
       "install": "dev-kit@dev-kit",
       "stars": 1,
-      "trust": 85,
-      "safety": "safe",
       "updated": "2026-08-14",
-      "hol": "https://hol.org/registry/plugins/sanghee%2Fdev-kit",
       "desc": {
         "en": "Enforced development workflow skills for Codex and Claude Code covering planning, TDD, debugging, review, security, CI, and release",
         "ru": "Обязательный порядок разработки в виде скиллов для Codex и Claude Code: планирование, TDD, отладка, ревью, безопасность, CI и релиз.",
@@ -185,10 +141,7 @@
       "repo": "AmethystLuna/embedded-workbench",
       "install": "embedded-workbench@embedded-workbench-dev",
       "stars": 0,
-      "trust": 92,
-      "safety": "safe",
       "updated": "2026-08-16",
-      "hol": "https://hol.org/registry/plugins/amethyst-luna%2Fembedded-workbench",
       "desc": {
         "en": "Embedded C/C++ firmware development toolbox — 7 skills (FreeRTOS, Keil MDK, ARMCLANG, HardFault triage, state machines, LVGL) plus workflow gates and 4 agents for Claude Code, Codex, Cursor, Kimi, OpenCode, and ZCode",
         "ru": "Набор для разработки прошивок на C/C++: 7 скиллов (FreeRTOS, Keil MDK, ARMCLANG, разбор HardFault, конечные автоматы, LVGL), контрольные точки процесса и 4 агента. Claude Code, Codex, Cursor, Kimi, OpenCode и ZCode.",

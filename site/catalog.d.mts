@@ -5,10 +5,7 @@ type Plugin = {
   repo: string;
   install: string;
   stars: number;
-  trust: number;
-  safety: string;
   updated: string;
-  hol: string;
   desc: Record<'ru' | 'uz' | 'en', string>;
 };
 export declare const catalog: {
