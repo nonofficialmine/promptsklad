@@ -75,7 +75,8 @@ export async function POST(request: Request): Promise<Response> {
 
   const dryRun = process.env.SUBMIT_DRY_RUN === '1';
   const token = process.env.GITHUB_TOKEN;
-  if (!dryRun && !token) return json(500, { error: 'not_configured' });
+  // Имя переменной (не значение) — чтобы диагностировать без доступа к логам Vercel.
+  if (!dryRun && !token) return json(500, { error: 'not_configured', missing: ['GITHUB_TOKEN'] });
 
   const file = postPath(values);
   const content = render(values);

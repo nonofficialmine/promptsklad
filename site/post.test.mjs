@@ -314,7 +314,7 @@ test('api: нет GITHUB_TOKEN -> 500, без утечки подробност�
   delete process.env.GITHUB_TOKEN;
   const res = await POST(req({ values: good, startedAt: OLD }));
   assert.equal(res.status, 500);
-  assert.deepEqual(await res.json(), { error: 'not_configured' });
+  assert.deepEqual(await res.json(), { error: 'not_configured', missing: ['GITHUB_TOKEN'] });
 });
 
 test('api: ошибка GitHub -> 502', async () => {
