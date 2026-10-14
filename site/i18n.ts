@@ -103,7 +103,7 @@ export const UI: Record<string, T> = {
     en: 'no sign-up · validation & moderation · open to AI via llms.txt',
   },
   how1: { ru: 'опишите промпт, скилл, хук, конфиг или кейс — в форме', uz: 'prompt, skill, hook, konfig yoki keysni formada yozing', en: 'describe a prompt, skill, hook, config or case in the form' },
-  how2: { ru: 'автопроверка полей и капча отсекают мусор и спам', uz: 'maydonlarni avtotekshirish va kapcha spamni to‘xtatadi', en: 'automatic validation and a captcha keep out junk and spam' },
+  how2: { ru: 'автопроверка полей и антиспам отсекают мусор', uz: 'maydonlarni avtotekshirish va antispam keraksizini to‘xtatadi', en: 'automatic validation and anti-spam keep out junk' },
   how3: { ru: 'модератор одобряет — пост на сайте и в llms.txt', uz: 'moderator tasdiqlaydi — post saytda va llms.txt da', en: 'a moderator approves — the post goes live and into llms.txt' },
   howTitle: { ru: 'Как поделиться опытом', uz: 'Tajribani qanday ulashish', en: 'How to share' },
   recentTitle: { ru: 'Последние посты', uz: 'So‘nggi postlar', en: 'Recent posts' },

@@ -8,16 +8,10 @@ import { canonicalPath, isPostCopy, postsPlugin, sidebar } from './site/posts-pl
 const SITE_URL = (process.env.SITE_URL ?? 'https://promptsklad.vercel.app').replace(/\/$/, '');
 const abs = (routePath: string) => `${SITE_URL}${routePath.replace(/\/index$/, '/')}`;
 
-// Тестовые ключи Cloudflare Turnstile: капча всегда проходит. Только для локальной разработки;
-// в проде реальные ключи из env (с тестовым site key и реальным секретом проверка не пройдёт).
-const TURNSTILE_TEST_SITE_KEY = '1x00000000000000000000AA';
-const TURNSTILE_TEST_SECRET = '1x0000000000000000000000000000000AA';
-
 /** Локально /api/submit работает всухую: без GitHub, возвращает карточку. */
 async function devSubmit(req: IncomingMessage, res: ServerResponse, next: () => void) {
   if (req.url !== '/api/submit' || req.method !== 'POST') return next();
   process.env.SUBMIT_DRY_RUN = '1';
-  process.env.TURNSTILE_SECRET_KEY ??= TURNSTILE_TEST_SECRET;
   const chunks: Buffer[] = [];
   for await (const c of req) chunks.push(c as Buffer);
   const response = await submit(
@@ -148,8 +142,5 @@ export default defineConfig({
   builderConfig: {
     server: { port: 4310, strictPort: true },
     dev: { setupMiddlewares: [(middlewares) => middlewares.unshift(devSubmit)] },
-    source: {
-      define: { 'process.env.TURNSTILE_SITE_KEY': JSON.stringify(process.env.TURNSTILE_SITE_KEY ?? TURNSTILE_TEST_SITE_KEY) },
-    },
   },
 });

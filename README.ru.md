@@ -34,7 +34,7 @@
 ## Как добавить
 
 **Любой материал** (промпт, скилл, кейс, хук, плагин, настройка, MCP, агент) — через форму на сайте (`/new`). Без регистрации и без git:
-форма → проверка + капча → функция Vercel открывает Pull Request → модератор мержит → Vercel публикует.
+форма → проверка + антиспам (honeypot, время заполнения) → функция Vercel открывает Pull Request → модератор мержит → Vercel публикует.
 
 **Через git** — Pull Request с файлом `posts/<раздел>/<slug>.md`. Устанавливаемые скиллы: `plugins/<plugin>/skills/<skill>/SKILL.md`.
 
@@ -45,9 +45,8 @@
 | Переменная | Что |
 |---|---|
 | `GITHUB_TOKEN` | Fine-grained токен на этот репозиторий: Contents + Pull requests = Read and write |
-| `TURNSTILE_SITE_KEY`, `TURNSTILE_SECRET_KEY` | Ключи [Cloudflare Turnstile](https://dash.cloudflare.com/?to=/:account/turnstile) (бесплатно) |
 
-Локально (`npm run dev`) `/api/submit` работает всухую с тестовыми ключами Turnstile — на GitHub ничего не уходит.
+Локально (`npm run dev`) `/api/submit` работает всухую — на GitHub ничего не уходит.
 
 ## SEO
 

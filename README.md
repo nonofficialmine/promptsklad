@@ -34,7 +34,7 @@ The built site serves `/llms.txt`, `/llms-full.txt`, and a `.md` version of ever
 ## Contributing
 
 **Any material** (prompt, skill, case, hook, plugin, setting, MCP, agent) — use the form on the site (`/new`). No sign-up, no git:
-form → validation + captcha → Vercel Function opens a Pull Request → a moderator merges → Vercel publishes.
+form → validation + anti-spam (honeypot, fill time) → Vercel Function opens a Pull Request → a moderator merges → Vercel publishes.
 
 **Via git** — a Pull Request with `posts/<section>/<slug>.md`. Installable skills: `plugins/<plugin>/skills/<skill>/SKILL.md`.
 
@@ -45,9 +45,8 @@ Section lists and the sidebar are generated automatically.
 | Variable | What |
 |---|---|
 | `GITHUB_TOKEN` | Fine-grained token for this repo: Contents + Pull requests = Read and write |
-| `TURNSTILE_SITE_KEY`, `TURNSTILE_SECRET_KEY` | [Cloudflare Turnstile](https://dash.cloudflare.com/?to=/:account/turnstile) keys (free) |
 
-Locally (`npm run dev`) `/api/submit` runs in dry-run mode with Turnstile test keys — nothing is sent to GitHub.
+Locally (`npm run dev`) `/api/submit` runs in dry-run mode — nothing is sent to GitHub.
 
 ## SEO
 

@@ -7,18 +7,6 @@ import { BODY_EXAMPLES } from './bodyExamples';
 import { clearDraft, loadDraft, saveDraft } from './draft';
 import './SubmitForm.css';
 
-declare global {
-  interface Window {
-    turnstile?: {
-      render: (el: HTMLElement, opts: Record<string, unknown>) => string;
-      reset: (id?: string) => void;
-      remove: (id: string) => void;
-    };
-  }
-}
-
-const SITE_KEY = process.env.TURNSTILE_SITE_KEY as string;
-const TURNSTILE_SRC = 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit';
 
 // Подписи формы по языкам. Значения, уходящие на сервер (ключи разделов, id полей), не переводятся.
 const T = {
@@ -32,7 +20,7 @@ const T = {
     done: 'Готово! Пост отправлен на модерацию — после одобрения он появится на сайте.',
     doneDry: 'Локальный режим: пост прошёл проверку, на GitHub ничего не отправлено.',
     another: 'Отправить ещё',
-    captcha: 'Подтвердите, что вы не робот.',
+    tooFast: 'Слишком быстро — подождите пару секунд и отправьте снова.',
     failed: 'Не удалось отправить. Попробуйте ещё раз чуть позже.',
     fix: 'Исправьте поля, отмеченные красным.',
     preview: 'Посмотреть, как будет выглядеть',
@@ -56,7 +44,7 @@ const T = {
     done: 'Tayyor! Post moderatsiyaga yuborildi — tasdiqlangach saytda paydo bo‘ladi.',
     doneDry: 'Lokal rejim: post tekshiruvdan o‘tdi, GitHub’ga hech narsa yuborilmadi.',
     another: 'Yana yuborish',
-    captcha: 'Robot emasligingizni tasdiqlang.',
+    tooFast: 'Juda tez — bir necha soniya kutib, qayta yuboring.',
     failed: 'Yuborib bo‘lmadi. Birozdan so‘ng qayta urinib ko‘ring.',
     fix: 'Qizil bilan belgilangan maydonlarni tuzating.',
     preview: 'Qanday ko‘rinishini ko‘rish',
@@ -80,7 +68,7 @@ const T = {
     done: 'Done! Your post is in moderation — it will appear on the site once approved.',
     doneDry: 'Local mode: the post passed validation, nothing was sent to GitHub.',
     another: 'Submit another',
-    captcha: 'Please confirm you are not a robot.',
+    tooFast: 'Too fast — wait a couple of seconds and submit again.',
     failed: 'Could not submit. Please try again a bit later.',
     fix: 'Fix the fields marked in red.',
     preview: 'Preview',
@@ -144,11 +132,10 @@ export function SubmitForm() {
   const [values, setValues] = useState<Values>({});
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [status, setStatus] = useState<Status>({ kind: 'idle' });
-  const [captcha, setCaptcha] = useState('');
   const [restored, setRestored] = useState(false);
   const [preview, setPreview] = useState(false);
-  const widget = useRef<HTMLDivElement>(null);
-  const widgetId = useRef<string | undefined>(undefined);
+  // Время открытия формы: сервер отклоняет отправку быстрее 3 секунд (антибот вместо капчи).
+  const startedAt = useRef(Date.now());
 
   // Раздел из ссылки (?section=) важнее раздела из черновика.
   useEffect(() => {
@@ -161,35 +148,6 @@ export function SubmitForm() {
   useEffect(() => {
     if (values.section) saveDraft(values);
   }, [values]);
-
-  // Капча Cloudflare Turnstile: грузим скрипт один раз, рендерим явно (заново — после «Отправить ещё»).
-  const formShown = status.kind !== 'done';
-  useEffect(() => {
-    if (!formShown) return;
-    const mount = () => {
-      if (!widget.current || !window.turnstile || widgetId.current) return;
-      widgetId.current = window.turnstile.render(widget.current, {
-        sitekey: SITE_KEY,
-        theme: 'auto',
-        callback: (token: string) => setCaptcha(token),
-        'expired-callback': () => setCaptcha(''),
-      });
-    };
-    if (window.turnstile) return mount();
-    let s = document.querySelector<HTMLScriptElement>(`script[src="${TURNSTILE_SRC}"]`);
-    if (!s) {
-      s = document.createElement('script');
-      s.src = TURNSTILE_SRC;
-      s.async = true;
-      document.head.appendChild(s);
-    }
-    s.addEventListener('load', mount);
-    return () => {
-      s?.removeEventListener('load', mount);
-      if (widgetId.current) window.turnstile?.remove(widgetId.current);
-      widgetId.current = undefined;
-    };
-  }, [formShown]);
 
   // Список тегов закрывается кликом снаружи, как обычный dropdown.
   useEffect(() => {
@@ -210,8 +168,8 @@ export function SubmitForm() {
   const reset = () => {
     setValues({ section: values.section });
     setStatus({ kind: 'idle' });
-    setCaptcha('');
     setPreview(false);
+    startedAt.current = Date.now();
   };
 
   const clearForm = () => {
@@ -230,14 +188,13 @@ export function SubmitForm() {
       document.getElementById(`f-${Object.keys(errs)[0]}`)?.focus();
       return;
     }
-    if (!captcha) return setStatus({ kind: 'error', text: t.captcha });
     setStatus({ kind: 'sending' });
     const website = (e.currentTarget.elements.namedItem('website') as HTMLInputElement | null)?.value ?? '';
     try {
       const res = await fetch('/api/submit', {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ values, captcha, lang, website }),
+        body: JSON.stringify({ values, startedAt: startedAt.current, lang, website }),
       });
       const data = await res.json().catch(() => ({}));
       if (res.ok) {
@@ -249,9 +206,7 @@ export function SubmitForm() {
         setErrors(data.errors);
         return setStatus({ kind: 'error', text: t.fix });
       }
-      setCaptcha('');
-      window.turnstile?.reset(widgetId.current);
-      setStatus({ kind: 'error', text: res.status === 403 ? t.captcha : t.failed });
+      setStatus({ kind: 'error', text: data.error === 'too_fast' ? t.tooFast : t.failed });
     } catch {
       setStatus({ kind: 'error', text: t.failed });
     }
@@ -378,7 +333,6 @@ export function SubmitForm() {
       })}
       {/* honeypot: скрыто от людей, боты заполняют */}
       <input className="psk-hp" name="website" tabIndex={-1} autoComplete="off" aria-hidden="true" />
-      <div ref={widget} className="psk-captcha" />
       <div className="psk-actions">
         <button type="submit" disabled={status.kind === 'sending'}>
           {status.kind === 'sending' ? t.sending : t.submit}

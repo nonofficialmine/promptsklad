@@ -34,7 +34,7 @@ Yig‘ilgan sayt `/llms.txt`, `/llms-full.txt` va har bir sahifaning `.md` versi
 ## Qanday qo‘shish mumkin
 
 **Har qanday material** (prompt, skill, keys, hook, plagin, sozlama, MCP, agent) — saytdagi forma orqali (`/new`). Ro‘yxatdan o‘tishsiz va gitsiz:
-forma → tekshiruv + kapcha → Vercel funksiyasi Pull Request ochadi → moderator birlashtiradi → Vercel chop etadi.
+forma → tekshiruv + antispam (honeypot, to‘ldirish vaqti) → Vercel funksiyasi Pull Request ochadi → moderator birlashtiradi → Vercel chop etadi.
 
 **Git orqali** — `posts/<bo‘lim>/<slug>.md` fayli bilan Pull Request. O‘rnatiladigan skillar: `plugins/<plugin>/skills/<skill>/SKILL.md`.
 
@@ -45,9 +45,8 @@ Bo‘lim ro‘yxatlari va yon panel avtomatik yig‘iladi.
 | O‘zgaruvchi | Nima |
 |---|---|
 | `GITHUB_TOKEN` | Ushbu repozitoriy uchun fine-grained token: Contents + Pull requests = Read and write |
-| `TURNSTILE_SITE_KEY`, `TURNSTILE_SECRET_KEY` | [Cloudflare Turnstile](https://dash.cloudflare.com/?to=/:account/turnstile) kalitlari (bepul) |
 
-Lokal (`npm run dev`) `/api/submit` Turnstile test kalitlari bilan quruq rejimda ishlaydi — GitHub’ga hech narsa yuborilmaydi.
+Lokal (`npm run dev`) `/api/submit` quruq rejimda ishlaydi — GitHub’ga hech narsa yuborilmaydi.
 
 ## SEO
 

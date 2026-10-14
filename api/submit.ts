@@ -1,6 +1,6 @@
 // Vercel Function: гостевая публикация поста.
-// Капча (Cloudflare Turnstile) -> валидация -> ветка + файл + Pull Request на модерацию.
-// Env: GITHUB_TOKEN (contents + pull requests: write), TURNSTILE_SECRET_KEY.
+// Антибот (honeypot + время заполнения) -> валидация -> ветка + файл + Pull Request на модерацию.
+// Env: GITHUB_TOKEN (contents + pull requests: write).
 // SUBMIT_DRY_RUN=1 — без GitHub, вернуть карточку (только для локальной разработки).
 import { spec, validate } from '../site/validate.mjs';
 import { postPath, render } from '../site/post.mjs';
@@ -11,13 +11,8 @@ const GH = 'https://api.github.com';
 const json = (status: number, data: unknown) =>
   new Response(JSON.stringify(data), { status, headers: { 'content-type': 'application/json' } });
 
-async function verifyCaptcha(token: string, secret: string, ip: string | null): Promise<boolean> {
-  const form = new URLSearchParams({ secret, response: token });
-  if (ip) form.set('remoteip', ip);
-  const res = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', { method: 'POST', body: form });
-  const data = (await res.json()) as { success?: boolean };
-  return data.success === true;
-}
+// Форму быстрее этого заполняет только бот.
+const MIN_FILL_MS = 3000;
 
 async function gh(token: string, method: string, path: string, body?: unknown) {
   const res = await fetch(`${GH}${path}`, {
@@ -48,7 +43,7 @@ async function openPullRequest(token: string, file: string, content: string, tit
     title: `[склад] ${title}`,
     head: branch,
     base: 'main',
-    body: `Гостевой пост, прошёл капчу и валидацию. Файл: \`${file}\`.\n\nПроверьте содержимое и смержите, чтобы опубликовать.`,
+    body: `Гостевой пост, прошёл автопроверку. Файл: \`${file}\`.\n\nПроверьте содержимое и смержите, чтобы опубликовать.`,
   });
   return pr.html_url as string;
 }
@@ -56,14 +51,16 @@ async function openPullRequest(token: string, file: string, content: string, tit
 export async function POST(request: Request): Promise<Response> {
   if (Number(request.headers.get('content-length') ?? 0) > MAX_BODY) return json(413, { error: 'too_large' });
 
-  let payload: { values?: Record<string, unknown>; captcha?: string; lang?: string; website?: string };
+  let payload: { values?: Record<string, unknown>; startedAt?: number; lang?: string; website?: string };
   try {
     payload = await request.json();
   } catch {
     return json(400, { error: 'bad_json' });
   }
-  // Honeypot: скрытое поле, которое заполняют только боты.
+  // Honeypot: скрытое поле, которое заполняют только боты; и слишком быстрое заполнение.
   if (payload.website) return json(400, { error: 'bad_request' });
+  const elapsed = Date.now() - Number(payload.startedAt);
+  if (!Number.isFinite(elapsed) || elapsed < MIN_FILL_MS) return json(400, { error: 'too_fast' });
 
   // Берём только известные поля и только строки.
   const values: Record<string, string> = {};
@@ -77,12 +74,8 @@ export async function POST(request: Request): Promise<Response> {
   if (Object.keys(errors).length) return json(422, { error: 'invalid', errors });
 
   const dryRun = process.env.SUBMIT_DRY_RUN === '1';
-  const secret = process.env.TURNSTILE_SECRET_KEY;
   const token = process.env.GITHUB_TOKEN;
-  if (!secret || (!dryRun && !token)) return json(500, { error: 'not_configured' });
-
-  const ip = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ?? null;
-  if (!payload.captcha || !(await verifyCaptcha(payload.captcha, secret, ip))) return json(403, { error: 'captcha' });
+  if (!dryRun && !token) return json(500, { error: 'not_configured' });
 
   const file = postPath(values);
   const content = render(values);

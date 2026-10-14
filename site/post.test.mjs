@@ -214,12 +214,11 @@ const env = { ...process.env };
 let calls;
 const realFetch = globalThis.fetch;
 
-function mockFetch({ captcha = true, ghFail = false } = {}) {
+function mockFetch({ ghFail = false } = {}) {
   calls = [];
   globalThis.fetch = async (url, init = {}) => {
     calls.push({ url: String(url), method: init.method ?? 'GET', body: init.body });
     const ok = (data, status = 200) => new Response(JSON.stringify(data), { status });
-    if (String(url).includes('turnstile')) return ok({ success: captcha });
     if (ghFail) return ok({ message: 'nope' }, 401);
     if (String(url).endsWith('/git/ref/heads/main')) return ok({ object: { sha: 'abc' } });
     if (String(url).endsWith('/pulls')) return ok({ html_url: 'https://github.com/x/y/pull/1' }, 201);
@@ -227,11 +226,12 @@ function mockFetch({ captcha = true, ghFail = false } = {}) {
   };
 }
 
+// Форма открыта минуту назад — проходит проверку времени заполнения.
+const OLD = Date.now() - 60_000;
 const req = (body, headers = {}) =>
   new Request('http://localhost/api/submit', { method: 'POST', headers: { 'content-type': 'application/json', ...headers }, body: JSON.stringify(body) });
 
 beforeEach(() => {
-  process.env.TURNSTILE_SECRET_KEY = 'secret';
   process.env.GITHUB_TOKEN = 'token';
   delete process.env.SUBMIT_DRY_RUN;
 });
@@ -242,7 +242,7 @@ afterEach(() => {
 
 test('api: валидный пост -> ветка, файл, PR (201)', async () => {
   mockFetch();
-  const res = await POST(req({ values: good, captcha: 't', lang: 'ru' }));
+  const res = await POST(req({ values: good, startedAt: OLD, lang: 'ru' }));
   assert.equal(res.status, 201);
   const data = await res.json();
   assert.equal(data.prUrl, 'https://github.com/x/y/pull/1');
@@ -253,28 +253,36 @@ test('api: валидный пост -> ветка, файл, PR (201)', async (
   assert.ok(calls.some((c) => c.method === 'POST' && c.url.endsWith('/git/refs')));
 });
 
-test('api: капча не прошла -> 403, GitHub не трогаем', async () => {
-  mockFetch({ captcha: false });
-  const res = await POST(req({ values: good, captcha: 't' }));
-  assert.equal(res.status, 403);
-  assert.ok(!calls.some((c) => c.url.includes('api.github.com')));
+test('api: форма заполнена быстрее 3 секунд -> 400 too_fast, GitHub не трогаем', async () => {
+  mockFetch();
+  const res = await POST(req({ values: good, startedAt: Date.now() - 500 }));
+  assert.equal(res.status, 400);
+  assert.deepEqual(await res.json(), { error: 'too_fast' });
+  assert.equal(calls.length, 0);
 });
 
-test('api: нет токена капчи -> 403', async () => {
+test('api: нет startedAt или мусор -> 400 too_fast', async () => {
   mockFetch();
-  assert.equal((await POST(req({ values: good }))).status, 403);
+  assert.equal((await POST(req({ values: good }))).status, 400);
+  assert.equal((await POST(req({ values: good, startedAt: 'abc' }))).status, 400);
+});
+
+test('api: никаких обращений к Cloudflare', async () => {
+  mockFetch();
+  await POST(req({ values: good, startedAt: OLD }));
+  assert.ok(!calls.some((c) => c.url.includes('cloudflare')));
 });
 
 test('api: невалидный пост -> 422 с ошибками на языке формы', async () => {
   mockFetch();
-  const res = await POST(req({ values: { ...good, post_title: '' }, captcha: 't', lang: 'en' }));
+  const res = await POST(req({ values: { ...good, post_title: '' }, startedAt: OLD, lang: 'en' }));
   assert.equal(res.status, 422);
   assert.equal((await res.json()).errors.post_title, 'Required field');
 });
 
-test('api: ключ в посте -> 422, GitHub и капчу не трогаем', async () => {
+test('api: ключ в посте -> 422, GitHub не трогаем', async () => {
   mockFetch();
-  const res = await POST(req({ values: { ...good, post_body: `Конфиг:\n${KEYS.openai}` }, captcha: 't' }));
+  const res = await POST(req({ values: { ...good, post_body: `Конфиг:\n${KEYS.openai}` }, startedAt: OLD }));
   assert.equal(res.status, 422);
   assert.match((await res.json()).errors.post_body, /Похоже на ключ/);
   assert.equal(calls.length, 0);
@@ -282,7 +290,7 @@ test('api: ключ в посте -> 422, GitHub и капчу не трогае
 
 test('api: honeypot заполнен -> 400', async () => {
   mockFetch();
-  assert.equal((await POST(req({ values: good, captcha: 't', website: 'spam' }))).status, 400);
+  assert.equal((await POST(req({ values: good, startedAt: OLD, website: 'spam' }))).status, 400);
 });
 
 test('api: битый JSON -> 400; слишком большой -> 413', async () => {
@@ -294,31 +302,31 @@ test('api: битый JSON -> 400; слишком большой -> 413', async 
 test('api: лишние поля и не-строки отбрасываются', async () => {
   mockFetch();
   process.env.SUBMIT_DRY_RUN = '1';
-  const res = await POST(req({ values: { ...good, evil: 'x', tags: ['a'] }, captcha: 't' }));
+  const res = await POST(req({ values: { ...good, evil: 'x', tags: ['a'] }, startedAt: OLD }));
   const data = await res.json();
   assert.equal(res.status, 200);
   assert.doesNotMatch(data.content, /evil/);
   assert.match(data.content, /tags: \[\]/);
 });
 
-test('api: нет секретов -> 500, без утечки подробностей', async () => {
+test('api: нет GITHUB_TOKEN -> 500, без утечки подробностей', async () => {
   mockFetch();
-  delete process.env.TURNSTILE_SECRET_KEY;
-  const res = await POST(req({ values: good, captcha: 't' }));
+  delete process.env.GITHUB_TOKEN;
+  const res = await POST(req({ values: good, startedAt: OLD }));
   assert.equal(res.status, 500);
   assert.deepEqual(await res.json(), { error: 'not_configured' });
 });
 
 test('api: ошибка GitHub -> 502', async () => {
   mockFetch({ ghFail: true });
-  assert.equal((await POST(req({ values: good, captcha: 't' }))).status, 502);
+  assert.equal((await POST(req({ values: good, startedAt: OLD }))).status, 502);
 });
 
 test('api: dry-run не ходит в GitHub', async () => {
   mockFetch();
   process.env.SUBMIT_DRY_RUN = '1';
   delete process.env.GITHUB_TOKEN;
-  const res = await POST(req({ values: good, captcha: 't' }));
+  const res = await POST(req({ values: good, startedAt: OLD }));
   assert.equal(res.status, 200);
   assert.ok(!calls.some((c) => c.url.includes('api.github.com')));
 });
