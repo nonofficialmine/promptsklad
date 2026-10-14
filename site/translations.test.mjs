@@ -1,9 +1,9 @@
-import { test, afterEach } from 'node:test';
+import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { mkdtempSync, mkdirSync, writeFileSync, readFileSync, existsSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { assemble, collectTexts, detectLang, isTranslationFile, splitSegments, translationFile } from './translations.mjs';
+import { assemble, collectTexts, detectLang, fromLeaves, isTranslationFile, splitSegments, toLeaves, translationFile } from './translations.mjs';
 import { pending, run } from '../scripts/translate.mjs';
 
 const POST = `---
@@ -69,12 +69,16 @@ test('assemble: ответ модели с HTML/скриптом или не т�
   assert.equal(assemble(parts, jsLink, { src: 'ru', lang: 'en', section: 'prompts', slug: 'x' }), null);
 });
 
-// ---------- scripts/translate.mjs ----------
-const realFetch = globalThis.fetch;
-afterEach(() => {
-  globalThis.fetch = realFetch;
+// ---------- Markdown <-> листья ----------
+test('toLeaves/fromLeaves: точная склейка; код, URL, префиксы и ** не уходят в модель', () => {
+  const t = '# Заголовок\n\n**Для чего:** найти `git diff` баги, [ревью](/prompts/x) и https://a.b/c\n- пункт\n| A | Б |\n|---|---|\n> цитата';
+  const r = toLeaves(t);
+  assert.equal(fromLeaves(r, r.leaves), t);
+  for (const l of r.leaves) assert.doesNotMatch(l, /`|\]\(|https?:|\*\*|^#|^- |\|/);
+  assert.deepEqual(r.leaves.slice(0, 3), ['Заголовок', 'Для чего:', 'найти']);
 });
 
+// ---------- scripts/translate.mjs ----------
 function sandbox() {
   const root = mkdtempSync(join(tmpdir(), 'psk-tr-'));
   mkdirSync(join(root, 'prompts'));
@@ -82,15 +86,10 @@ function sandbox() {
   return root;
 }
 
-const echo = (status = 200) => {
-  const calls = [];
-  globalThis.fetch = async (url, init) => {
-    calls.push(JSON.parse(init.body));
-    if (status !== 200) return new Response('{}', { status });
-    const { t } = JSON.parse(JSON.parse(init.body).messages[1].content);
-    return new Response(JSON.stringify({ choices: [{ message: { content: JSON.stringify({ t }) } }] }));
-  };
-  return calls;
+// Движок-заглушка вместо NLLB: помечает каждый лист.
+const fake = (calls = []) => (strings, src, lang) => {
+  calls.push({ n: strings.length, src, lang });
+  return strings.map((s) => `[${lang}] ${s}`);
 };
 
 test('очередь: оригинал на ru -> переводы на uz и en; готовые переводы пропускаются', () => {
@@ -100,33 +99,41 @@ test('очередь: оригинал на ru -> переводы на uz и en
   assert.deepEqual(pending(root).map((j) => j.lang), ['en']);
 });
 
-test('run: пишет файлы переводов, повторный запуск ничего не делает', async () => {
+test('run: пишет переводы, сохраняя Markdown и код; повторный запуск ничего не делает', () => {
   const root = sandbox();
-  const calls = echo();
-  assert.equal((await run({ token: 't', root })).done, 2);
-  assert.ok(existsSync(join(root, 'prompts', 'x.uz.md')) && existsSync(join(root, 'prompts', 'x.en.md')));
-  assert.match(readFileSync(join(root, 'prompts', 'x.uz.md'), 'utf8'), /translated_from: "ru"/);
+  const calls = [];
+  assert.equal(run({ root, engine: fake(calls) }).done, 2);
+  const en = readFileSync(join(root, 'prompts', 'x.en.md'), 'utf8');
+  assert.match(en, /^title: "\[en\] Ревью кода"$/m);
+  assert.match(en, /translated_from: "ru"/);
+  assert.match(en, /^# \[en\] Ревью кода$/m);
+  assert.match(en, /\*\*\[en\] Для чего:\*\* \[en\] найти баги\./);
+  assert.match(en, /```text\n\[en\] Ты — \[en\] строгий ревьюер\.\n```/);
   assert.equal(calls.length, 2);
-  assert.equal((await run({ token: 't', root })).done, 0);
+  assert.equal(run({ root, engine: fake() }).done, 0);
 });
 
-test('run: 429 (лимит) — остановка без ошибки, файлов нет', async () => {
+test('run: падение движка — ошибка по посту, без файлов', () => {
   const root = sandbox();
-  echo(429);
-  const r = await run({ token: 't', root });
+  const r = run({ root, engine: () => { throw new Error('boom'); } });
   assert.equal(r.done, 0);
+  assert.equal(r.errors, 2);
   assert.ok(!existsSync(join(root, 'prompts', 'x.uz.md')));
 });
 
-test('run: ошибка сервера по одному посту не валит остальные', async () => {
+test('run: движок вернул не столько строк -> пропуск', () => {
   const root = sandbox();
-  echo(500);
-  assert.equal((await run({ token: 't', root })).done, 0);
+  assert.equal(run({ root, engine: (s) => s.slice(1) }).errors, 2);
 });
 
-test('run: max ограничивает число запросов за запуск', async () => {
+test('run: перевод с HTML от модели отклоняется', () => {
   const root = sandbox();
-  const calls = echo();
-  await run({ token: 't', root, max: 1 });
+  assert.equal(run({ root, engine: (s) => s.map(() => '<script>x</script>') }).done, 0);
+});
+
+test('run: max ограничивает число переводов за запуск', () => {
+  const root = sandbox();
+  const calls = [];
+  run({ root, max: 1, engine: fake(calls) });
   assert.equal(calls.length, 1);
 });

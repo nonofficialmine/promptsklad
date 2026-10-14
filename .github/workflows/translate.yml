@@ -1,18 +1,17 @@
 name: Translate posts
 
-# Бесплатно: GitHub Models (лимит запросов в день) + Actions (публичный репозиторий).
-# Новые посты переводятся после попадания в main; при упоре в лимит — догоняет по расписанию.
+# Полностью бесплатно: открытая модель NLLB-200 работает прямо на раннере (публичный репозиторий —
+# минуты Actions бесплатны). Без ключей, аккаунтов и лимитов запросов.
 on:
   push:
     branches: [main]
-    paths: ['posts/**', 'scripts/translate.mjs', 'site/translations.mjs', '.github/workflows/translate.yml']
+    paths: ['posts/**', 'scripts/translate.mjs', 'scripts/nllb.py', 'site/translations.mjs', '.github/workflows/translate.yml']
   schedule:
     - cron: '17 3 * * *'
   workflow_dispatch:
 
 permissions:
   contents: write
-  models: read
 
 concurrency:
   group: translate
@@ -21,20 +20,30 @@ concurrency:
 jobs:
   translate:
     runs-on: ubuntu-latest
+    timeout-minutes: 60
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with: { node-version: 22 }
+      - uses: actions/setup-python@v5
+        with: { python-version: '3.12' }
+      - name: Кэш модели NLLB
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/huggingface
+          key: nllb-200-distilled-600M
+      - name: Зависимости (CPU)
+        run: |
+          pip install --quiet --index-url https://download.pytorch.org/whl/cpu torch
+          pip install --quiet transformers sentencepiece
       - name: Перевод недостающих постов
         run: node scripts/translate.mjs
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
       - name: Коммит переводов
         run: |
           git add posts
           git diff --cached --quiet && { echo "новых переводов нет"; exit 0; }
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git commit -m "Машинные переводы постов"
+          git commit -m "Машинные переводы постов (NLLB-200)"
           git pull --rebase
           git push

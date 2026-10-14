@@ -117,3 +117,55 @@ export function assemble({ fm, segs, hasDescription }, translated, { src, lang, 
   const withBanner = h1 ? `${h1[0]}\n${banner}\n${text.slice(h1[0].length)}` : `${banner}\n\n${text}`;
   return `${head.join('\n')}\n\n${withBanner}`;
 }
+
+// ---------- Markdown -> чистый текст для модели машинного перевода и обратно ----------
+// Модель получает только «листья» — фрагменты текста. Префиксы строк (#, -, 1., >, |),
+// `код`, адреса ссылок, URL и маркеры **жирного** остаются нетронутыми.
+const LINE_PREFIX = /^(\s*(?:#{1,6}\s+|[-*+]\s+|\d+\.\s+|>\s?)*)/;
+// Тире-разделитель тоже держим вне модели: NLLB его теряет.
+const INLINE = /(`[^`\n]+`)|\[([^\]\n]*)\]\(([^)\s]*)\)|\*\*([^*\n]+)\*\*|(https?:\/\/[^\s)]+)|(\||\s[—–]\s)/g;
+const HAS_LETTER = /\p{L}/u;
+
+/** Текст -> { parts, leaves }: parts — строки и номера листьев. */
+export function toLeaves(text) {
+  const parts = [];
+  const leaves = [];
+  const leaf = (s) => {
+    // Пробелы по краям — вне листа, иначе модель их съест.
+    const m = /^(\s*)([\s\S]*?)(\s*)$/.exec(s);
+    if (m[1]) parts.push(m[1]);
+    // По одному предложению на лист: модель машинного перевода реже теряет куски текста.
+    m[2]?.split(/(?<=[.!?…])(\s+)(?=\S)/).forEach((piece, i) => {
+      if (i % 2) parts.push(piece);
+      else if (HAS_LETTER.test(piece)) parts.push({ leaf: leaves.push(piece) - 1 });
+      else if (piece) parts.push(piece);
+    });
+    if (m[3]) parts.push(m[3]);
+  };
+  text.split('\n').forEach((line, li) => {
+    if (li) parts.push('\n');
+    const prefix = LINE_PREFIX.exec(line)[1];
+    if (prefix) parts.push(prefix);
+    const rest = line.slice(prefix.length);
+    let last = 0;
+    for (const m of rest.matchAll(INLINE)) {
+      leaf(rest.slice(last, m.index));
+      if (m[1] || m[5] || m[6]) parts.push(m[0]);
+      else if (m[3] !== undefined) {
+        parts.push('[');
+        leaf(m[2]);
+        parts.push(`](${m[3]})`);
+      } else {
+        parts.push('**');
+        leaf(m[4]);
+        parts.push('**');
+      }
+      last = m.index + m[0].length;
+    }
+    leaf(rest.slice(last));
+  });
+  return { parts, leaves };
+}
+
+export const fromLeaves = ({ parts }, translated) =>
+  parts.map((p) => (typeof p === 'string' ? p : translated[p.leaf].replace(/\n/g, ' '))).join('');
