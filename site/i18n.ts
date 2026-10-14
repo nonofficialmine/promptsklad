@@ -62,6 +62,11 @@ export const SECTIONS: { id: string; title: T; short: T; desc: T; extra?: T }[] 
       uz: 'Claude Code plaginlari: skillar, buyruqlar, agentlar va hooklar to‘plamlari.',
       en: 'Claude Code plugins: bundles of skills, commands, agents and hooks.',
     },
+    extra: {
+      ru: 'Плагины других авторов с командами установки — в [каталоге плагинов](/catalog).',
+      uz: 'Boshqa mualliflarning plaginlari va o‘rnatish buyruqlari — [plaginlar katalogida](/uz/catalog).',
+      en: 'Plugins by other authors, with install commands, are in the [plugin catalog](/en/catalog).',
+    },
   },
   {
     id: 'settings',
