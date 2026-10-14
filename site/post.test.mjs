@@ -1,5 +1,7 @@
 import { test, beforeEach, afterEach } from 'node:test';
 import assert from 'node:assert/strict';
+import { existsSync, readdirSync, readFileSync } from 'node:fs';
+import { TAGS, TOPICS } from './taxonomy.mjs';
 import { slugify, render, postPath, blocks } from './post.mjs';
 import { spec, validate, findSecret } from './validate.mjs';
 import { POST } from '../api/submit.ts';
@@ -200,6 +202,42 @@ test('черновик: сохраняем, читаем, удаляем', () =>
     clearDraft();
   } finally {
     delete globalThis.localStorage;
+  }
+});
+
+test('скилл prompt-card совпадает с сайтом: разделы, темы, теги, поля и лимиты', () => {
+  const skill = readFileSync(new URL('../plugins/starter/skills/prompt-card/SKILL.md', import.meta.url), 'utf8');
+  for (const [name, dir] of Object.entries(spec.sections)) assert.ok(skill.includes(`${name} → ${dir}`), `раздел ${dir}`);
+  for (const id of spec.topics) assert.ok(skill.includes(`${id} (${TOPICS[id].ru})`), `тема ${id}`);
+  for (const id of spec.tags) assert.ok(skill.includes(`${id} (${TAGS[id].ru})`), `тег ${id}`);
+  for (const f of spec.fields) {
+    const row = skill.split('\n').find((l) => l.includes(`| ${f.id} |`));
+    assert.ok(row, `поле ${f.id}`);
+    if (f.max) assert.ok(row.includes(String(f.max)), `лимит ${f.id}: ${f.max}`);
+    if (f.min) assert.ok(row.includes(`${f.min}–`), `минимум ${f.id}: ${f.min}`);
+  }
+});
+
+test('готовые переводы: у каждого есть оригинал, тема/теги/модели как в оригинале', () => {
+  const root = new URL('../posts/', import.meta.url);
+  const fm = (url) => {
+    const head = /^---\r?\n([\s\S]*?)\r?\n---/.exec(readFileSync(url, 'utf8'))?.[1] ?? '';
+    return Object.fromEntries(head.split(/\r?\n/).map((l) => /^(\w+):\s*(.*)$/.exec(l)).filter(Boolean).map(([, k, v]) => [k, v.trim()]));
+  };
+  for (const section of Object.values(spec.sections)) {
+    let names;
+    try {
+      names = readdirSync(new URL(`${section}/`, root));
+    } catch {
+      continue;
+    }
+    for (const name of names.filter((n) => /\.(ru|uz|en)\.md$/.test(n))) {
+      const original = new URL(`${section}/${name.replace(/\.(ru|uz|en)\.md$/, '.md')}`, root);
+      assert.ok(existsSync(original), `${section}/${name}: нет оригинала`);
+      const [o, t] = [fm(original), fm(new URL(`${section}/${name}`, root))];
+      for (const key of ['topic', 'tags', 'models']) assert.equal(t[key], o[key], `${section}/${name}: ${key}`);
+      assert.ok(t.title, `${section}/${name}: нет title`);
+    }
   }
 });
 

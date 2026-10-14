@@ -43,7 +43,7 @@ export function TerminalHub({ title, cta }: { title?: string; cta?: { text: stri
   const input = useRef<HTMLInputElement>(null);
   const links = useRef<(HTMLAnchorElement | null)[]>([]);
 
-  // Посты общие для всех языков — берём русские маршруты (без префикса), без страниц-списков.
+  // Набор постов один на все языки — берём русские маршруты (без префикса), без страниц-списков.
   const posts = useMemo(
     () =>
       pages
@@ -51,6 +51,8 @@ export function TerminalHub({ title, cta }: { title?: string; cta?: { text: stri
         .sort((a, b) => b.routePath.localeCompare(a.routePath)),
     [pages],
   );
+  // Название — с той же страницы на языке сайта: там перевод, если он есть.
+  const titleIn = (pre: string, p: (typeof posts)[number]) => pages.find((q) => q.routePath === `${pre}${p.routePath}`)?.title ?? p.title;
 
   const commands: Cmd[] = useMemo(
     () => [
@@ -131,7 +133,7 @@ export function TerminalHub({ title, cta }: { title?: string; cta?: { text: stri
               {posts.length ? (
                 posts.slice(0, 3).map((p) => (
                   <Link key={p.routePath} href={`${pre}${p.routePath}`} className="th-recent">
-                    {p.title}
+                    {titleIn(pre, p)}
                   </Link>
                 ))
               ) : (
