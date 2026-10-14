@@ -50,39 +50,50 @@ export async function translateTexts(texts, src, lang, token) {
     }),
   });
   if (res.status === 429) return { rateLimited: true };
-  if (!res.ok) throw new Error(`models ${res.status}`);
+  if (!res.ok) throw new Error(`models HTTP ${res.status}: ${(await res.text()).slice(0, 300).replace(/\s+/g, ' ')}`);
   const data = await res.json();
   const out = JSON.parse(data.choices?.[0]?.message?.content ?? '{}').t;
-  return { texts: Array.isArray(out) && out.length === texts.length && out.every((x) => typeof x === 'string') ? out : null };
+  if (!Array.isArray(out) || out.length !== texts.length || !out.every((x) => typeof x === 'string')) {
+    return { texts: null, reason: `ответ не JSON-массив той же длины (ожидалось ${texts.length}, получено ${Array.isArray(out) ? out.length : typeof out})` };
+  }
+  return { texts: out };
 }
+
+// В GitHub Actions строки ::error:: / ::warning:: становятся аннотациями — их видно даже без доступа к логам.
+const annotate = (level, msg) => console.log(process.env.GITHUB_ACTIONS ? `::${level}::${msg}` : `[translate] ${msg}`);
 
 export async function run({ token, root = 'posts', max = Number(process.env.TRANSLATE_MAX ?? 40) } = {}) {
   const jobs = pending(root);
   let done = 0;
+  let errors = 0;
+  let rateLimited = false;
   for (const job of jobs.slice(0, max)) {
     const parts = collectTexts(readFileSync(job.file, 'utf8'), job.section);
     let result;
     try {
       result = await translateTexts(parts.texts, job.src, job.lang, token);
     } catch (e) {
-      console.error(`[translate] ${job.file} -> ${job.lang}: ${e.message}`);
+      errors++;
+      annotate('error', `${job.file} -> ${job.lang}: ${e.message}`);
       continue;
     }
     if (result.rateLimited) {
-      console.log('[translate] лимит GitHub Models — продолжу при следующем запуске');
+      rateLimited = true;
+      annotate('warning', 'лимит GitHub Models (429) — продолжу при следующем запуске');
       break;
     }
     const md = result.texts && assemble(parts, result.texts, job);
     if (!md) {
-      console.error(`[translate] ${job.file} -> ${job.lang}: ответ модели не прошёл проверку, пропуск`);
+      errors++;
+      annotate('error', `${job.file} -> ${job.lang}: ${result.reason ?? 'перевод не прошёл проверку безопасности (HTML/javascript: или потеря сегментов)'}`);
       continue;
     }
     writeFileSync(translationFile(job.file, job.lang), md);
     done++;
     console.log(`[translate] ${translationFile(job.file, job.lang)}`);
   }
-  console.log(`[translate] готово ${done}, в очереди было ${jobs.length}`);
-  return { done, queued: jobs.length };
+  annotate('notice', `переведено ${done}, ошибок ${errors}, в очереди было ${jobs.length}${rateLimited ? ', упёрлись в лимит' : ''}`);
+  return { done, errors, queued: jobs.length, rateLimited };
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
@@ -90,5 +101,7 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
     console.error('GITHUB_TOKEN не задан');
     process.exit(1);
   }
-  await run({ token: process.env.GITHUB_TOKEN });
+  const r = await run({ token: process.env.GITHUB_TOKEN });
+  // Ошибки без единого перевода — шаг красный, чтобы поломка не пряталась за «success».
+  if (r.errors && !r.done) process.exit(1);
 }
