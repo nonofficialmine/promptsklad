@@ -137,3 +137,9 @@ test('run: max ограничивает число переводов за за�
   run({ root, max: 1, engine: fake(calls) });
   assert.equal(calls.length, 1);
 });
+
+test('регистр: фрагмент со строчной в оригинале — со строчной и в переводе', () => {
+  const root = sandbox();
+  run({ root, engine: (strs) => strs.map((x) => (x === 'найти баги.' ? 'Find bugs.' : x)) });
+  assert.match(readFileSync(join(root, 'prompts', 'x.en.md'), 'utf8'), /\*\* find bugs\./);
+});

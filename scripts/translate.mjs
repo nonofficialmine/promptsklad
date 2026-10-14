@@ -52,8 +52,11 @@ export function translateTexts(texts, src, lang, engine = nllb) {
   const leaves = split.flatMap((s) => s.leaves);
   const out = leaves.length ? engine(leaves, src, lang) : [];
   if (!Array.isArray(out) || out.length !== leaves.length) return { texts: null, reason: 'модель вернула не столько строк' };
+  // Фрагмент после тире/запятой в оригинале со строчной — и в переводе со строчной (NLLB пишет с заглавной).
+  const keepCase = (orig, tr) =>
+    /^\p{Ll}/u.test(orig) && /^\p{Lu}\p{Ll}/u.test(tr) ? tr[0].toLowerCase() + tr.slice(1) : tr;
   let k = 0;
-  return { texts: split.map((s) => fromLeaves(s, s.leaves.map(() => out[k++]))) };
+  return { texts: split.map((s) => fromLeaves(s, s.leaves.map((orig) => keepCase(orig, out[k++])))) };
 }
 
 // В GitHub Actions строки ::error:: / ::notice:: становятся аннотациями — их видно даже без доступа к логам.
