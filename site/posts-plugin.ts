@@ -7,7 +7,6 @@ import * as path from 'node:path';
 import type { RouteMeta, RspressPlugin, Sidebar } from '@rspress/core';
 import { LANGS, SECTIONS, UI, prefix } from './i18n';
 import { detectLang, isTranslationFile, originalRoute, translationFile } from './translations.mjs';
-import { catalogLabel, catalogPage, catalogRoute } from './catalog.mjs';
 
 const NICK = /^[A-Za-z0-9-]{1,39}$/;
 
@@ -118,11 +117,7 @@ export function sidebar(postsRoot: string): Sidebar {
           link: `${pre}/${s.id}/`,
           collapsible: true,
           collapsed: true,
-          items: [
-            // Каталог чужих плагинов — первым пунктом в «Плагинах».
-            ...(s.id === 'plugins' ? [{ text: catalogLabel(lang), link: catalogRoute(lang) }] : []),
-            ...posts.filter((p) => p.section === s.id).map((p) => ({ text: versionFor(p, lang).title, link: `${pre}/${s.id}/${p.slug}` })),
-          ],
+          items: posts.filter((p) => p.section === s.id).map((p) => ({ text: versionFor(p, lang).title, link: `${pre}/${s.id}/${p.slug}` })),
         })),
       ];
     }),
@@ -196,9 +191,7 @@ export function postsPlugin(postsRoot: string, siteUrl: string): RspressPlugin {
         //   ].join('\n'),
         // };
 
-        const catalogPages = [{ routePath: catalogRoute(lang), content: catalogPage(lang) }];
-
-        return [...postPages, ...sectionPages, ...catalogPages];
+        return [...postPages, ...sectionPages];
       });
     },
   };
