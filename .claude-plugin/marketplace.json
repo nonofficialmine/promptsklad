@@ -1,6 +1,7 @@
 {
   "name": "promptsklad",
   "owner": { "name": "promptsklad" },
+  "metadata": { "description": "Плагины promptsklad — склада промптов, скиллов и опыта Claude Code" },
   "plugins": [
     {
       "name": "starter",
