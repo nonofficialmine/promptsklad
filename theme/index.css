@@ -60,3 +60,11 @@
 }
 .rp-search-panel__modal { width: min(720px, calc(100vw - 32px)) !important; max-width: none !important; }
 .rp-search-panel__input { font-family: 'JetBrains Mono', ui-monospace, monospace; }
+
+/* Меню постов: не больше 2 строк, дальше «…» (полное название — в подсказке). */
+.rp-sidebar-item--group-item .rp-sidebar-item__left > span {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}

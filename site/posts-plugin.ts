@@ -28,6 +28,12 @@ const index = new Map<string, Post>();
 
 const versionFor = (p: Post, lang: string): Version => p.versions[lang] ?? { file: p.file, title: p.title };
 
+/** Для меню: «Название: пояснение» -> «Название». Полный заголовок — на странице и в подсказке. */
+export const menuTitle = (title: string) => {
+  const short = title.split(/:\s/)[0].trim();
+  return short.length >= 4 && short !== title ? short : title;
+};
+
 // Страницы из addPages компилируются как MDX: экранируем и HTML, и выражения {}.
 const escapeText = (s: string) =>
   s
@@ -117,7 +123,7 @@ export function sidebar(postsRoot: string): Sidebar {
           link: `${pre}/${s.id}/`,
           collapsible: true,
           collapsed: true,
-          items: posts.filter((p) => p.section === s.id).map((p) => ({ text: versionFor(p, lang).title, link: `${pre}/${s.id}/${p.slug}` })),
+          items: posts.filter((p) => p.section === s.id).map((p) => ({ text: menuTitle(versionFor(p, lang).title), link: `${pre}/${s.id}/${p.slug}` })),
         })),
       ];
     }),

@@ -1,5 +1,6 @@
 // Кастомная тема: своя главная (терминал Claude Code) и горячая клавиша поиска «/».
 import { useEffect } from 'react';
+import { usePage, usePages } from '@rspress/core/runtime';
 import { Layout as BasicLayout } from '@rspress/core/theme-original';
 import { HomeHub } from './HomeHub';
 import './index.css';
@@ -18,8 +19,25 @@ function useSlashSearch() {
   }, []);
 }
 
+// В меню у постов короткие названия (до «:») — полный заголовок показываем во всплывающей подсказке.
+function useSidebarTooltips() {
+  const { pages } = usePages();
+  const { page } = usePage();
+  useEffect(() => {
+    const full = new Map(pages.map((p) => [p.routePath, p.title]));
+    const t = setTimeout(() => {
+      document.querySelectorAll<HTMLAnchorElement>('a.rp-sidebar-item--group-item').forEach((a) => {
+        const title = full.get(a.getAttribute('href') ?? '');
+        if (title) a.title = title;
+      });
+    });
+    return () => clearTimeout(t);
+  }, [pages, page.routePath]);
+}
+
 const Layout = () => {
   useSlashSearch();
+  useSidebarTooltips();
   return <BasicLayout HomeLayout={HomeHub} />;
 };
 
