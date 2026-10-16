@@ -1,5 +1,6 @@
 ---
 title: "Playwright MCP: Claude сам проверяет сайт в браузере"
+date: "2026-10-13"
 description: "Чтобы Claude открыл ваш сайт в браузере, понажимал кнопки, заполнил формы и рассказал, что сломано."
 topic: "dev"
 tags: ["frontend","tests"]

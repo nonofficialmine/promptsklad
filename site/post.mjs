@@ -66,12 +66,14 @@ const toMarkdown = (b) => {
 };
 
 /** values -> текст карточки */
-export function render(values) {
+export function render(values, now = new Date()) {
   const title = oneLine(values.post_title);
   const name = oneLine(values.author_name);
   const fm = [
     '---',
     `title: ${JSON.stringify(title)}`,
+    // Дата добавления — для ленты «Новое».
+    `date: ${JSON.stringify(now.toISOString().slice(0, 10))}`,
     // Сниппет для поисковиков — из «Для чего».
     ...(values.purpose?.trim() ? [`description: ${JSON.stringify(oneLine(values.purpose).slice(0, 160))}`] : []),
     `topic: ${JSON.stringify(values.topic)}`,

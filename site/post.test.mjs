@@ -368,3 +368,20 @@ test('api: dry-run не ходит в GitHub', async () => {
   assert.equal(res.status, 200);
   assert.ok(!calls.some((c) => c.url.includes('api.github.com')));
 });
+
+test('лента: render пишет дату добавления', () => {
+  assert.match(render(good, new Date('2026-10-16T10:00:00Z')), /^date: "2026-10-16"$/m);
+});
+
+test('лента: у каждого оригинала в posts/ есть дата YYYY-MM-DD', async () => {
+  const { readdirSync, readFileSync } = await import('node:fs');
+  const missing = [];
+  for (const section of readdirSync('posts')) {
+    for (const name of readdirSync(`posts/${section}`)) {
+      if (!name.endsWith('.md') || /\.(ru|uz|en)\.md$/.test(name)) continue;
+      const md = readFileSync(`posts/${section}/${name}`, 'utf8');
+      if (!/^date: "\d{4}-\d{2}-\d{2}"$/m.test(md.split('\n---')[0])) missing.push(`${section}/${name}`);
+    }
+  }
+  assert.deepEqual(missing, [], 'добавьте во frontmatter: date: "YYYY-MM-DD"');
+});

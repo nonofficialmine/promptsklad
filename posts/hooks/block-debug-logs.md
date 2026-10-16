@@ -1,5 +1,6 @@
 ---
 title: "Не дать закоммитить временные console.log и print"
+date: "2026-10-14"
 description: "Хук блокирует git commit, если в staged-изменениях остались отладочные логи, и сообщает Claude, что их нужно убрать."
 topic: "dev"
 tags: ["automation", "debugging", "git"]

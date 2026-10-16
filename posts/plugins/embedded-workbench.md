@@ -1,5 +1,6 @@
 ---
 title: "Embedded Workbench: прошивки на C/C++, FreeRTOS, Keil и HardFault"
+date: "2026-10-14"
 description: "Знания и агенты для разработчиков встраиваемых систем на C/C++ под Cortex-M: FreeRTOS, прерывания, хранение в NVM, сборка в Keil MDK, разбор HardFault, конечные"
 topic: "dev"
 tags: ["debugging","refactoring"]

@@ -1,5 +1,6 @@
 ---
 title: "Разрешить read-only команды, чтобы Claude реже спрашивал"
+date: "2026-10-14"
 description: "Allowlist для команд, которые только читают состояние: git status/diff/log, ls, проверка портов и процессов."
 topic: "dev"
 tags: ["automation", "git"]

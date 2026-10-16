@@ -53,9 +53,10 @@ Lokal (`npm run dev`) `/api/submit` quruq rejimda ishlaydi — GitHub’ga hech 
 
 Mualliflar o‘z tilida yozadi. Post `main` ga tushgach, **Translate posts** GitHub Action uni GitHub Models orqali qolgan ikki tilga tarjima qiladi (bepul, kartasiz; kunlik so‘rov limiti — qolgani har kungi ishga tushishda bajariladi). Tarjimalar asl nusxa yonida: `posts/<bo‘lim>/<slug>.<lang>.md`, «mashina tarjimasi» belgisi bilan; kod va konfiglar tarjima qilinmaydi. Tarjima bo‘lmaguncha asl nusxa ko‘rsatiladi (`noindex` bilan). Qo‘lda ishga tushirish: Actions → Translate posts → Run workflow.
 
-## Statistika
+## «Yangi» lentasi va statistika
 
-[Umami Cloud](https://cloud.umami.is) (bepul: oyiga 100 ming hodisa, cookie va rozilik bannerisiz). Vercel env’da `UMAMI_WEBSITE_ID` berilganda yoqiladi; faqat prod-domen hisoblanadi. Tashriflar, sahifalar, manbalar, mamlakatlar va qurilmalardan tashqari sayt o‘z hodisalarini yuboradi: `post_submitted` / `post_submit_failed` (forma), `terminal_command` (bosh sahifadagi terminal: qaysi bo‘lim, bosish yoki klaviatura), `search_open` (`/` yoki bosish), `post_like` / `post_unlike` (post ostidagi layk tugmasi).
+- `/news` — yangi materiallar kunlar bo‘yicha (postdagi `date` maydoni bo‘yicha; formadan kelgan postlar uni o‘zi oladi, git orqali — `date: "YYYY-MM-DD"`, buni test tekshiradi).
+- Statistika: o‘rnatilgan **Vercel Web Analytics** — tashqi xizmatlarsiz, skript o‘z domenimizdan, cookie’siz. Yoqish: Vercel → loyiha → Analytics → Enable, keyin Redeploy. Bepul rejada: tashriflar, sahifalar, manbalar, mamlakatlar, qurilmalar.
 
 ## SEO
 

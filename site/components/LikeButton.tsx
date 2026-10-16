@@ -3,7 +3,6 @@
 import { useEffect, useState } from 'react';
 import { useLang, usePage } from '@rspress/core/runtime';
 import { likedIds, postIdFromRoute, rememberLike } from '../likes.mjs';
-import { track } from '../track';
 import './LikeButton.css';
 
 const T: Record<string, { like: string; unlike: string }> = {
@@ -52,7 +51,6 @@ export function LikeButton() {
       const data = await res.json();
       setCount(data.count);
       rememberLike(id, next);
-      track(next ? 'post_like' : 'post_unlike', { post: id });
     } catch {
       // Не получилось — возвращаем как было.
       setLiked(!next);

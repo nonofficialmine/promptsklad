@@ -5,5 +5,5 @@ export type Block =
   | { kind: 'field'; label: string; text: string }
   | { kind: 'code' | 'text'; text: string };
 export declare function blocks(values: Record<string, string>): Block[];
-export declare function render(values: Record<string, string>): string;
+export declare function render(values: Record<string, string>, now?: Date): string;
 export declare function postPath(values: Record<string, string>, now?: Date, rand?: () => number): string;

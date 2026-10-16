@@ -1,5 +1,6 @@
 ---
 title: "Playwright MCP для QA: фиксированный FULLHD и папка для скриншотов"
+date: "2026-10-14"
 description: "Настройка Playwright MCP так, чтобы проверки шли в одном разрешении, а скриншоты не разбрасывались по проекту."
 topic: "dev"
 tags: ["tests", "frontend"]

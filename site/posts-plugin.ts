@@ -5,7 +5,7 @@
 import { existsSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import * as path from 'node:path';
 import type { RouteMeta, RspressPlugin, Sidebar } from '@rspress/core';
-import { LANGS, SECTIONS, UI, prefix } from './i18n';
+import { LANGS, SECTIONS, UI, materialsLabel, prefix } from './i18n';
 import { detectLang, isTranslationFile, originalRoute, translationFile } from './translations.mjs';
 
 const NICK = /^[A-Za-z0-9-]{1,39}$/;
@@ -19,6 +19,8 @@ type Post = {
   author?: string;
   /** Язык оригинала (автора). */
   lang: string;
+  /** Дата добавления YYYY-MM-DD (frontmatter date) — для ленты «Новое». */
+  date?: string;
   /** Версии по языкам: оригинал + готовые переводы. */
   versions: Record<string, Version>;
 };
@@ -80,6 +82,7 @@ export function collectPosts(postsRoot: string): Post[] {
         author: author && NICK.test(author) ? author : undefined,
         lang,
         versions,
+        date: /^\d{4}-\d{2}-\d{2}$/.test(frontmatterValue(md, 'date') ?? '') ? frontmatterValue(md, 'date') : undefined,
       };
       posts.push(post);
       index.set(`${section}/${post.slug}`, post);
@@ -108,6 +111,32 @@ export function isPostCopy(routePath: string): boolean {
 export function canonicalPath(routePath: string): string {
   const at = postAt(routePath);
   return at && isPostCopy(routePath) ? originalRoute(at.post.lang, at.post.section, at.post.slug) : routePath;
+}
+
+const LOCALES: Record<string, string> = { ru: 'ru-RU', uz: 'uz-Latn-UZ', en: 'en-US' };
+
+/** Лента «Новое»: посты по дням добавления, новые сверху. */
+function newsPage(posts: Post[], lang: (typeof LANGS)[number]) {
+  const pre = prefix(lang);
+  const byDay = new Map<string, Post[]>();
+  for (const p of posts) if (p.date) byDay.set(p.date, [...(byDay.get(p.date) ?? []), p]);
+  const fmt = new Intl.DateTimeFormat(LOCALES[lang], { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' });
+  const sectionTitle = (id: string) => SECTIONS.find((s) => s.id === id)?.title[lang] ?? id;
+  const days = [...byDay.keys()].sort().reverse().flatMap((day) => {
+    const order = (id: string) => SECTIONS.findIndex((s) => s.id === id);
+    const list = byDay.get(day)!.sort((a, b) => order(a.section) - order(b.section) || a.title.localeCompare(b.title));
+    const heading = fmt.format(new Date(`${day}T00:00:00Z`));
+    return [
+      `## ${heading[0].toUpperCase()}${heading.slice(1)} · ${materialsLabel(list.length, lang)}`,
+      '',
+      ...list.map((p) => `- **${sectionTitle(p.section)}** · [${escapeText(versionFor(p, lang).title)}](${pre}/${p.section}/${p.slug})`),
+      '',
+    ];
+  });
+  return {
+    routePath: `${pre}/news`,
+    content: ['---', `description: ${JSON.stringify(UI.newsDesc[lang])}`, '---', '', `# ${UI.news[lang]}`, '', UI.newsDesc[lang], '', ...days].join('\n'),
+  };
 }
 
 /** Боковая панель: все разделы и их посты, для каждого языка. */
@@ -197,7 +226,7 @@ export function postsPlugin(postsRoot: string, siteUrl: string): RspressPlugin {
         //   ].join('\n'),
         // };
 
-        return [...postPages, ...sectionPages];
+        return [...postPages, ...sectionPages, newsPage(posts, lang)];
       });
     },
   };

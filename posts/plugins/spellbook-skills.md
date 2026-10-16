@@ -1,5 +1,6 @@
 ---
 title: "Spellbook Skills: ворктри, коммиты, TDD и ревью кода"
+date: "2026-10-14"
 description: "Десять навыков для ежедневной разработки: git-ворктри и завершение веток, аккуратные коммиты и PR/MR, TDD, ревью изменённого кода, DDD для Java и Spring Boot. Д"
 topic: "dev"
 tags: ["git","code-review","tests","refactoring","docs"]

@@ -96,6 +96,12 @@ export const SECTIONS: { id: string; title: T; short: T; desc: T; extra?: T }[] 
 ];
 
 export const UI: Record<string, T> = {
+  news: { ru: 'Новое', uz: 'Yangi', en: 'What’s new' },
+  newsDesc: {
+    ru: 'Лента новых материалов по дням: промпты, скиллы, кейсы, хуки, плагины, настройки, MCP и агенты.',
+    uz: 'Yangi materiallar lentasi kunlar bo‘yicha: promptlar, skillar, keyslar, hooklar, plaginlar, sozlamalar, MCP va agentlar.',
+    en: 'A day-by-day feed of new material: prompts, skills, cases, hooks, plugins, settings, MCP and agents.',
+  },
   welcome: { ru: 'Добро пожаловать в promptsklad', uz: 'promptsklad’ga xush kelibsiz', en: 'Welcome to promptsklad' },
   hint: {
     ru: 'без регистрации · проверка и модерация · открыто для ИИ через llms.txt',
@@ -134,3 +140,13 @@ export function postsLabel(n: number, lang: Lang): string {
 
 // Темы и теги — в taxonomy.mjs: их же читает post.mjs внутри Vercel Function.
 export { TAGS, TOPICS } from './taxonomy.mjs';
+
+/** «1 материал / 3 материала / 5 материалов», «1 new item / 8 new items». */
+export function materialsLabel(n: number, lang: Lang): string {
+  if (lang === 'uz') return `${n} ta yangi material`;
+  if (lang === 'en') return `${n} new ${n === 1 ? 'item' : 'items'}`;
+  const m10 = n % 10;
+  const m100 = n % 100;
+  const word = m10 === 1 && m100 !== 11 ? 'материал' : m10 >= 2 && m10 <= 4 && (m100 < 12 || m100 > 14) ? 'материала' : 'материалов';
+  return `${n} ${word}`;
+}

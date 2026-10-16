@@ -7,8 +7,6 @@ import { canonicalPath, isPostCopy, postsPlugin, sidebar } from './site/posts-pl
 
 // Прод-домен; при своём домене задать SITE_URL в env Vercel.
 const SITE_URL = (process.env.SITE_URL ?? 'https://promptsklad.vercel.app').replace(/\/$/, '');
-// ID сайта Umami: пробелы/переводы строк по краям — частая ошибка при вставке в Vercel.
-const UMAMI_WEBSITE_ID = (process.env.UMAMI_WEBSITE_ID ?? '').trim().replace(/^["']|["']$/g, '');
 const abs = (routePath: string) => `${SITE_URL}${routePath.replace(/\/index$/, '/')}`;
 
 /** Локально /api/submit работает всухую: без GitHub, возвращает карточку. */
@@ -90,12 +88,9 @@ export default defineConfig({
     ['meta', { property: 'og:site_name', content: 'promptsklad' }],
     ['meta', { property: 'og:image', content: `${SITE_URL}/og.png` }],
     ['meta', { name: 'twitter:card', content: 'summary_large_image' }],
-    // Статистика Umami (без cookies): только если задан ID сайта и только на прод-домене.
-    ...(/^[0-9a-f-]{36}$/i.test(UMAMI_WEBSITE_ID)
-      ? [
-          `<script defer src="https://cloud.umami.is/script.js" data-website-id="${UMAMI_WEBSITE_ID}" data-domains="${new URL(SITE_URL).host}"></script>`,
-        ]
-      : []),
+    // Статистика: встроенная Vercel Web Analytics — скрипт с нашего же домена, без cookies и сторонних сервисов.
+    // Подключается только при сборке на Vercel (там переменная VERCEL=1); включается в проекте Vercel → Analytics.
+    ...(process.env.VERCEL === '1' ? ['<script defer src="/_vercel/insights/script.js"></script>'] : []),
     ...(process.env.GOOGLE_SITE_VERIFICATION
       ? [['meta', { name: 'google-site-verification', content: process.env.GOOGLE_SITE_VERIFICATION }] as [string, Record<string, string>]]
       : []),
@@ -141,6 +136,7 @@ export default defineConfig({
         label: 'Русский',
         nav: [
           // { text: 'Авторы', link: '/authors/', activeMatch: '/authors/' },
+          { text: 'Новое', link: '/news', activeMatch: '^/news' },
           { text: 'Поделиться', link: '/new' },
         ],
       },
@@ -149,6 +145,7 @@ export default defineConfig({
         label: 'O‘zbekcha',
         nav: [
           // { text: 'Mualliflar', link: '/uz/authors/', activeMatch: '/uz/authors/' },
+          { text: 'Yangi', link: '/uz/news', activeMatch: '^/uz/news' },
           { text: 'Ulashish', link: '/uz/new' },
         ],
       },
@@ -157,6 +154,7 @@ export default defineConfig({
         label: 'English',
         nav: [
           // { text: 'Authors', link: '/en/authors/', activeMatch: '/en/authors/' },
+          { text: 'What’s new', link: '/en/news', activeMatch: '^/en/news' },
           { text: 'Share', link: '/en/new' },
         ],
       },

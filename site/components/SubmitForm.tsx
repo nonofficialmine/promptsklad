@@ -5,7 +5,6 @@ import { spec, validate } from '../validate.mjs';
 import { blocks } from '../post.mjs';
 import { BODY_EXAMPLES } from './bodyExamples';
 import { clearDraft, loadDraft, saveDraft } from './draft';
-import { track } from '../track';
 import './SubmitForm.css';
 
 
@@ -199,19 +198,16 @@ export function SubmitForm() {
       });
       const data = await res.json().catch(() => ({}));
       if (res.ok) {
-        track('post_submitted', { section: spec.sections[values.section] ?? 'unknown' });
         clearDraft();
         setRestored(false);
         return setStatus({ kind: 'done', text: data.dryRun ? t.doneDry : t.done, link: data.prUrl });
       }
-      track('post_submit_failed', { reason: res.status === 422 ? 'invalid' : String(data.error ?? res.status) });
       if (res.status === 422 && data.errors) {
         setErrors(data.errors);
         return setStatus({ kind: 'error', text: t.fix });
       }
       setStatus({ kind: 'error', text: data.error === 'too_fast' ? t.tooFast : t.failed });
     } catch {
-      track('post_submit_failed', { reason: 'network' });
       setStatus({ kind: 'error', text: t.failed });
     }
   };
