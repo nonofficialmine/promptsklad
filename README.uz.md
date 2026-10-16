@@ -52,6 +52,10 @@ Lokal (`npm run dev`) `/api/submit` quruq rejimda ishlaydi — GitHub’ga hech 
 
 Mualliflar o‘z tilida yozadi. Post `main` ga tushgach, **Translate posts** GitHub Action uni GitHub Models orqali qolgan ikki tilga tarjima qiladi (bepul, kartasiz; kunlik so‘rov limiti — qolgani har kungi ishga tushishda bajariladi). Tarjimalar asl nusxa yonida: `posts/<bo‘lim>/<slug>.<lang>.md`, «mashina tarjimasi» belgisi bilan; kod va konfiglar tarjima qilinmaydi. Tarjima bo‘lmaguncha asl nusxa ko‘rsatiladi (`noindex` bilan). Qo‘lda ishga tushirish: Actions → Translate posts → Run workflow.
 
+## Statistika
+
+[Umami Cloud](https://cloud.umami.is) (bepul: oyiga 100 ming hodisa, cookie va rozilik bannerisiz). Vercel env’da `UMAMI_WEBSITE_ID` berilganda yoqiladi; faqat prod-domen hisoblanadi. Tashriflar, sahifalar, manbalar, mamlakatlar va qurilmalardan tashqari sayt o‘z hodisalarini yuboradi: `post_submitted` / `post_submit_failed` (forma), `terminal_command` (bosh sahifadagi terminal: qaysi bo‘lim, bosish yoki klaviatura), `search_open` (`/` yoki bosish).
+
 ## SEO
 
 Sozlangan: absolyut `canonical` va `hreflang`, `sitemap.xml`, `robots.txt`, oldindan ko‘rish rasmi (`og.png`), har bir sahifada `description`. Postlarning o‘zbek va ingliz nusxalari — `noindex`, `canonical` rus asliga (dublikatsiz).

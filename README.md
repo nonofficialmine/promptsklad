@@ -52,6 +52,10 @@ Locally (`npm run dev`) `/api/submit` runs in dry-run mode — nothing is sent t
 
 Authors post in their own language. After a post reaches `main`, the **Translate posts** GitHub Action translates it into the other two languages via GitHub Models (free, no card; daily request limit — leftovers are picked up by the daily run). Translations are saved next to the original as `posts/<section>/<slug>.<lang>.md` with a "machine translation" note; code and configs are never translated. Until a translation exists, the original is shown (with `noindex`). Manual run: Actions → Translate posts → Run workflow.
 
+## Analytics
+
+[Umami Cloud](https://cloud.umami.is) (free: 100k events/month, no cookies, no consent banner). Enabled when `UMAMI_WEBSITE_ID` is set in Vercel env; counts only the production domain. Besides visits, pages, referrers, countries and devices, the site sends custom events: `post_submitted` / `post_submit_failed` (form), `terminal_command` (home terminal: which section, click or keyboard), `search_open` (`/` or click).
+
 ## SEO
 
 Built in: absolute `canonical` and `hreflang`, `sitemap.xml`, `robots.txt`, Open Graph image (`og.png`), per-page `description`. Uzbek/English copies of posts are `noindex` with `canonical` to the Russian original (no duplicates).

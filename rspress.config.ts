@@ -70,6 +70,12 @@ export default defineConfig({
     ['meta', { property: 'og:site_name', content: 'promptsklad' }],
     ['meta', { property: 'og:image', content: `${SITE_URL}/og.png` }],
     ['meta', { name: 'twitter:card', content: 'summary_large_image' }],
+    // Статистика Umami (без cookies): только если задан ID сайта и только на прод-домене.
+    ...(/^[0-9a-f-]{36}$/i.test(process.env.UMAMI_WEBSITE_ID ?? '')
+      ? [
+          `<script defer src="https://cloud.umami.is/script.js" data-website-id="${process.env.UMAMI_WEBSITE_ID}" data-domains="${new URL(SITE_URL).host}"></script>`,
+        ]
+      : []),
     ...(process.env.GOOGLE_SITE_VERIFICATION
       ? [['meta', { name: 'google-site-verification', content: process.env.GOOGLE_SITE_VERIFICATION }] as [string, Record<string, string>]]
       : []),

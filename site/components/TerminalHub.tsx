@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useLang, usePages } from '@rspress/core/runtime';
 import { Link } from '@rspress/core/theme';
 import { SECTIONS, UI, postsLabel, prefix, type Lang } from '../i18n';
+import { track } from '../track';
 import './TerminalHub.css';
 
 // Логотип Claude Code из стартового экрана CLI (символы-квадранты), перерисованный пикселями.
@@ -42,6 +43,7 @@ export function TerminalHub({ title, cta }: { title?: string; cta?: { text: stri
   const [sel, setSel] = useState(0);
   const input = useRef<HTMLInputElement>(null);
   const links = useRef<(HTMLAnchorElement | null)[]>([]);
+  const viaKeyboard = useRef(false);
 
   // Набор постов один на все языки — берём русские маршруты (без префикса), без страниц-списков.
   const posts = useMemo(
@@ -86,6 +88,7 @@ export function TerminalHub({ title, cta }: { title?: string; cta?: { text: stri
       setSel((active + d + shown.length) % Math.max(shown.length, 1));
     } else if (e.key === 'Enter') {
       e.preventDefault();
+      viaKeyboard.current = true;
       links.current[active]?.click(); // переход через Link — без перезагрузки страницы
     } else if (e.key === 'Escape') {
       setQuery('/');
@@ -173,6 +176,10 @@ export function TerminalHub({ title, cta }: { title?: string; cta?: { text: stri
                   }}
                   className={`th-item${i === active ? ' is-sel' : ''}${c.name === '/share' ? ' th-item--share' : ''}`}
                   onMouseEnter={() => setSel(i)}
+                  onClick={() => {
+                    track('terminal_command', { command: c.name, via: viaKeyboard.current ? 'keyboard' : 'click' });
+                    viaKeyboard.current = false;
+                  }}
                 >
                   <span className="th-item__ptr">{i === active ? '❯' : ' '}</span>
                   <span className="th-item__name">{c.name}</span>
