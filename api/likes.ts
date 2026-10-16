@@ -85,7 +85,7 @@ function storeFromEnv(): Store | null {
   return null;
 }
 
-// Лайкать можно только существующий пост. Если папки posts в сборке функции нет — проверяем только формат id.
+// Лайкать можно только существующий пост. В сборке функции на Vercel папки posts нет — там проверяется только формат id.
 const POSTS = join(process.cwd(), 'posts');
 const postExists = (id: string) => !existsSync(POSTS) || existsSync(join(POSTS, `${id}.md`));
 
