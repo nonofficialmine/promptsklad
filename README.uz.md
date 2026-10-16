@@ -45,6 +45,7 @@ Bo‘lim ro‘yxatlari va yon panel avtomatik yig‘iladi.
 | O‘zgaruvchi | Nima |
 |---|---|
 | `GITHUB_TOKEN` | Ushbu repozitoriy uchun fine-grained token: Contents + Pull requests = Read and write |
+| `KV_REST_API_URL`, `KV_REST_API_TOKEN` | Postlar laykilari: Vercel → Storage’da **Upstash for Redis** ulangach o‘zi qo‘shiladi (bepul tarif). Ularsiz layk tugmasi ko‘rinmaydi |
 
 Lokal (`npm run dev`) `/api/submit` quruq rejimda ishlaydi — GitHub’ga hech narsa yuborilmaydi.
 
@@ -54,7 +55,7 @@ Mualliflar o‘z tilida yozadi. Post `main` ga tushgach, **Translate posts** Git
 
 ## Statistika
 
-[Umami Cloud](https://cloud.umami.is) (bepul: oyiga 100 ming hodisa, cookie va rozilik bannerisiz). Vercel env’da `UMAMI_WEBSITE_ID` berilganda yoqiladi; faqat prod-domen hisoblanadi. Tashriflar, sahifalar, manbalar, mamlakatlar va qurilmalardan tashqari sayt o‘z hodisalarini yuboradi: `post_submitted` / `post_submit_failed` (forma), `terminal_command` (bosh sahifadagi terminal: qaysi bo‘lim, bosish yoki klaviatura), `search_open` (`/` yoki bosish).
+[Umami Cloud](https://cloud.umami.is) (bepul: oyiga 100 ming hodisa, cookie va rozilik bannerisiz). Vercel env’da `UMAMI_WEBSITE_ID` berilganda yoqiladi; faqat prod-domen hisoblanadi. Tashriflar, sahifalar, manbalar, mamlakatlar va qurilmalardan tashqari sayt o‘z hodisalarini yuboradi: `post_submitted` / `post_submit_failed` (forma), `terminal_command` (bosh sahifadagi terminal: qaysi bo‘lim, bosish yoki klaviatura), `search_open` (`/` yoki bosish), `post_like` / `post_unlike` (post ostidagi layk tugmasi).
 
 ## SEO
 

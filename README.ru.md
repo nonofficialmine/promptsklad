@@ -45,6 +45,7 @@
 | Переменная | Что |
 |---|---|
 | `GITHUB_TOKEN` | Fine-grained токен на этот репозиторий: Contents + Pull requests = Read and write |
+| `KV_REST_API_URL`, `KV_REST_API_TOKEN` | Лайки постов: появляются сами после подключения **Upstash for Redis** в Vercel → Storage (бесплатный тариф). Без них кнопки лайка нет |
 
 Локально (`npm run dev`) `/api/submit` работает всухую — на GitHub ничего не уходит.
 
@@ -54,7 +55,7 @@
 
 ## Статистика
 
-[Umami Cloud](https://cloud.umami.is) (бесплатно: 100 тыс. событий в месяц, без cookies и баннера согласия). Включается, когда в env Vercel задан `UMAMI_WEBSITE_ID`; считается только прод-домен. Кроме посещений, страниц, источников, стран и устройств, сайт шлёт свои события: `post_submitted` / `post_submit_failed` (форма), `terminal_command` (терминал на главной: какой раздел, клик или клавиатура), `search_open` (`/` или клик).
+[Umami Cloud](https://cloud.umami.is) (бесплатно: 100 тыс. событий в месяц, без cookies и баннера согласия). Включается, когда в env Vercel задан `UMAMI_WEBSITE_ID`; считается только прод-домен. Кроме посещений, страниц, источников, стран и устройств, сайт шлёт свои события: `post_submitted` / `post_submit_failed` (форма), `terminal_command` (терминал на главной: какой раздел, клик или клавиатура), `search_open` (`/` или клик), `post_like` / `post_unlike` (кнопка лайка под постом).
 
 ## SEO
 

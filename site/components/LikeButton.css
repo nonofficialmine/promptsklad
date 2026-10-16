@@ -1,0 +1,12 @@
+.psk-like-row { margin-top: 32px; }
+.psk-like {
+  display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px;
+  border: 1px solid var(--rp-c-divider); border-radius: 999px; background: var(--rp-c-bg);
+  color: var(--rp-c-text-1); font: inherit; font-size: 14px; cursor: pointer;
+  transition: border-color 0.15s, color 0.15s, background 0.15s;
+}
+.psk-like:hover { border-color: var(--rp-c-brand); color: var(--rp-c-brand); }
+.psk-like[aria-pressed='true'] { border-color: var(--rp-c-brand); color: var(--rp-c-brand); background: var(--rp-c-brand-tint); }
+.psk-like:disabled { cursor: wait; }
+.psk-like__icon { font-size: 16px; line-height: 1; }
+.psk-like__count { font-variant-numeric: tabular-nums; font-weight: 600; }

@@ -45,6 +45,7 @@ Section lists and the sidebar are generated automatically.
 | Variable | What |
 |---|---|
 | `GITHUB_TOKEN` | Fine-grained token for this repo: Contents + Pull requests = Read and write |
+| `KV_REST_API_URL`, `KV_REST_API_TOKEN` | Likes on posts: added automatically when you connect **Upstash for Redis** in Vercel → Storage (free tier). Without them the like button is hidden |
 
 Locally (`npm run dev`) `/api/submit` runs in dry-run mode — nothing is sent to GitHub.
 
@@ -54,7 +55,7 @@ Authors post in their own language. After a post reaches `main`, the **Translate
 
 ## Analytics
 
-[Umami Cloud](https://cloud.umami.is) (free: 100k events/month, no cookies, no consent banner). Enabled when `UMAMI_WEBSITE_ID` is set in Vercel env; counts only the production domain. Besides visits, pages, referrers, countries and devices, the site sends custom events: `post_submitted` / `post_submit_failed` (form), `terminal_command` (home terminal: which section, click or keyboard), `search_open` (`/` or click).
+[Umami Cloud](https://cloud.umami.is) (free: 100k events/month, no cookies, no consent banner). Enabled when `UMAMI_WEBSITE_ID` is set in Vercel env; counts only the production domain. Besides visits, pages, referrers, countries and devices, the site sends custom events: `post_submitted` / `post_submit_failed` (form), `terminal_command` (home terminal: which section, click or keyboard), `search_open` (`/` or click), `post_like` / `post_unlike` (like button under a post).
 
 ## SEO
 

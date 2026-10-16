@@ -4,5 +4,10 @@
   "installCommand": "npm ci",
   "buildCommand": "npm run build",
   "outputDirectory": "doc_build",
-  "cleanUrls": true
+  "cleanUrls": true,
+  "functions": {
+    "api/likes.ts": {
+      "includeFiles": "posts/**"
+    }
+  }
 }

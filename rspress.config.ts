@@ -2,6 +2,7 @@ import * as path from 'node:path';
 import { defineConfig } from '@rspress/core';
 import type { IncomingMessage, ServerResponse } from 'node:http';
 import { POST as submit } from './api/submit';
+import { GET as likesGet, POST as likesPost } from './api/likes';
 import { canonicalPath, isPostCopy, postsPlugin, sidebar } from './site/posts-plugin';
 
 // Прод-домен; при своём домене задать SITE_URL в env Vercel.
@@ -17,6 +18,23 @@ async function devSubmit(req: IncomingMessage, res: ServerResponse, next: () => 
   const response = await submit(
     new Request('http://localhost/api/submit', { method: 'POST', headers: req.headers as HeadersInit, body: Buffer.concat(chunks) }),
   );
+  res.statusCode = response.status;
+  res.setHeader('content-type', 'application/json');
+  res.end(await response.text());
+}
+
+/** Локально /api/likes считает в памяти (без Redis), если в env нет ключей базы. */
+async function devLikes(req: IncomingMessage, res: ServerResponse, next: () => void) {
+  if (!req.url?.startsWith('/api/likes')) return next();
+  process.env.LIKES_DEV_MEMORY = '1';
+  const chunks: Buffer[] = [];
+  for await (const c of req) chunks.push(c as Buffer);
+  const request = new Request(`http://localhost${req.url}`, {
+    method: req.method,
+    headers: req.headers as HeadersInit,
+    body: req.method === 'POST' ? Buffer.concat(chunks) : undefined,
+  });
+  const response = await (req.method === 'POST' ? likesPost : likesGet)(request);
   res.statusCode = response.status;
   res.setHeader('content-type', 'application/json');
   res.end(await response.text());
@@ -147,6 +165,6 @@ export default defineConfig({
   },
   builderConfig: {
     server: { port: 4310, strictPort: true },
-    dev: { setupMiddlewares: [(middlewares) => middlewares.unshift(devSubmit)] },
+    dev: { setupMiddlewares: [(middlewares) => middlewares.unshift(devSubmit, devLikes)] },
   },
 });
