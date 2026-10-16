@@ -7,6 +7,8 @@ import { canonicalPath, isPostCopy, postsPlugin, sidebar } from './site/posts-pl
 
 // Прод-домен; при своём домене задать SITE_URL в env Vercel.
 const SITE_URL = (process.env.SITE_URL ?? 'https://promptsklad.vercel.app').replace(/\/$/, '');
+// ID сайта Umami: пробелы/переводы строк по краям — частая ошибка при вставке в Vercel.
+const UMAMI_WEBSITE_ID = (process.env.UMAMI_WEBSITE_ID ?? '').trim().replace(/^["']|["']$/g, '');
 const abs = (routePath: string) => `${SITE_URL}${routePath.replace(/\/index$/, '/')}`;
 
 /** Локально /api/submit работает всухую: без GitHub, возвращает карточку. */
@@ -89,9 +91,9 @@ export default defineConfig({
     ['meta', { property: 'og:image', content: `${SITE_URL}/og.png` }],
     ['meta', { name: 'twitter:card', content: 'summary_large_image' }],
     // Статистика Umami (без cookies): только если задан ID сайта и только на прод-домене.
-    ...(/^[0-9a-f-]{36}$/i.test(process.env.UMAMI_WEBSITE_ID ?? '')
+    ...(/^[0-9a-f-]{36}$/i.test(UMAMI_WEBSITE_ID)
       ? [
-          `<script defer src="https://cloud.umami.is/script.js" data-website-id="${process.env.UMAMI_WEBSITE_ID}" data-domains="${new URL(SITE_URL).host}"></script>`,
+          `<script defer src="https://cloud.umami.is/script.js" data-website-id="${UMAMI_WEBSITE_ID}" data-domains="${new URL(SITE_URL).host}"></script>`,
         ]
       : []),
     ...(process.env.GOOGLE_SITE_VERIFICATION
