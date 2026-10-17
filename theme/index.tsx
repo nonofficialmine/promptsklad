@@ -3,7 +3,7 @@ import { useEffect } from 'react';
 import { usePage, usePages } from '@rspress/core/runtime';
 import { Layout as BasicLayout } from '@rspress/core/theme-original';
 import { HomeHub } from './HomeHub';
-import { LikeButton } from '../site/components/LikeButton';
+import { LikeButton, ListLikeCounts } from '../site/components/LikeButton';
 import './index.css';
 
 // «/» открывает поиск, как в терминале и на GitHub (если фокус не в поле ввода).
@@ -39,8 +39,18 @@ function useSidebarTooltips() {
 const Layout = () => {
   useSlashSearch();
   useSidebarTooltips();
-  // Лайк — под текстом каждого поста (на остальных страницах кнопка сама не рисуется).
-  return <BasicLayout HomeLayout={HomeHub} afterDocContent={<LikeButton />} />;
+  // Лайк — под текстом каждого поста; числа лайков — в списках постов раздела.
+  return (
+    <BasicLayout
+      HomeLayout={HomeHub}
+      afterDocContent={
+        <>
+          <LikeButton />
+          <ListLikeCounts />
+        </>
+      }
+    />
+  );
 };
 
 export { Layout };

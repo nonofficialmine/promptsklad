@@ -10,3 +10,7 @@
 .psk-like:disabled { cursor: wait; }
 .psk-like__icon { font-size: 16px; line-height: 1; }
 .psk-like__count { font-variant-numeric: tabular-nums; font-weight: 600; }
+
+/* Число лайков в списках постов раздела */
+.psk-list-like { margin-left: 8px; font-size: 12px; color: var(--rp-c-text-3, var(--rp-c-text-2)); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.psk-list-like--hot { color: var(--rp-c-brand); font-weight: 600; }

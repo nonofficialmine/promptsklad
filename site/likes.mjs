@@ -12,6 +12,13 @@ export function postIdFromRoute(routePath) {
   return m && m[2] !== 'index' ? `${m[1]}/${m[2]}` : null;
 }
 
+const SECTION_ROUTE = new RegExp(`^(?:/(?:uz|en))?/(${SECTIONS.join('|')})/(?:index)?$`);
+
+/** /en/prompts/ -> "prompts"; не страница-список раздела -> null. */
+export function sectionFromRoute(routePath) {
+  return SECTION_ROUTE.exec((routePath ?? '').replace(/\.html$/, ''))?.[1] ?? null;
+}
+
 /** Похоже ли значение на id поста (без проверки, что пост существует). */
 export const isPostId = (id) => typeof id === 'string' && id.length <= 120 && ID.test(id) && !id.endsWith('/index');
 

@@ -1,6 +1,6 @@
 import { test, afterEach } from 'node:test';
 import assert from 'node:assert/strict';
-import { isPostId, postIdFromRoute } from './likes.mjs';
+import { isPostId, postIdFromRoute, sectionFromRoute } from './likes.mjs';
 import { GET, handleLikes, memoryStore } from '../api/likes.ts';
 
 test('лайки: id поста из адреса страницы — один на все языки', () => {
@@ -8,6 +8,13 @@ test('лайки: id поста из адреса страницы — один 
   assert.equal(postIdFromRoute('/en/prompts/level-up'), 'prompts/level-up');
   assert.equal(postIdFromRoute('/uz/plugins/boss'), 'plugins/boss');
   for (const r of ['/', '/prompts/', '/prompts/index', '/new', '/en/new', '/catalog', '/foo/bar', undefined]) assert.equal(postIdFromRoute(r), null, String(r));
+});
+
+test('лайки: страница-список раздела на любом языке', () => {
+  assert.equal(sectionFromRoute('/prompts/'), 'prompts');
+  assert.equal(sectionFromRoute('/en/plugins/'), 'plugins');
+  assert.equal(sectionFromRoute('/uz/hooks/index'), 'hooks');
+  for (const r of ['/', '/prompts/level-up', '/new', '/foo/', undefined]) assert.equal(sectionFromRoute(r), null, String(r));
 });
 
 test('лайки: формат id', () => {

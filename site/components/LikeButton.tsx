@@ -2,13 +2,13 @@
 // Если лайки не подключены (нет базы) или сервер недоступен — кнопки нет.
 import { useEffect, useState } from 'react';
 import { useLang, usePage } from '@rspress/core/runtime';
-import { likedIds, postIdFromRoute, rememberLike } from '../likes.mjs';
+import { likedIds, postIdFromRoute, rememberLike, sectionFromRoute } from '../likes.mjs';
 import './LikeButton.css';
 
-const T: Record<string, { like: string; unlike: string }> = {
-  ru: { like: 'Нравится', unlike: 'Убрать лайк' },
-  uz: { like: 'Yoqdi', unlike: 'Layk’ni olib tashlash' },
-  en: { like: 'Like', unlike: 'Remove like' },
+const T: Record<string, { like: string; unlike: string; count: string }> = {
+  ru: { like: 'Нравится', unlike: 'Убрать лайк', count: 'Лайков' },
+  uz: { like: 'Yoqdi', unlike: 'Layk’ni olib tashlash', count: 'Layklar' },
+  en: { like: 'Like', unlike: 'Remove like', count: 'Likes' },
 };
 
 export function LikeButton() {
@@ -79,4 +79,53 @@ export function LikeButton() {
       </button>
     </div>
   );
+}
+
+/**
+ * На странице-списке раздела дописывает к каждому посту число лайков: «♥ 3» (ноль — серым).
+ * Список собирается из Markdown, поэтому числа добавляются после отрисовки, одним запросом на раздел.
+ */
+export function ListLikeCounts() {
+  const { page } = usePage();
+  const label = (T[useLang() || 'ru'] ?? T.ru).count;
+  const section = sectionFromRoute(page?.routePath);
+
+  useEffect(() => {
+    if (!section) return;
+    let stale = false;
+    const t = setTimeout(async () => {
+      const main = document.querySelector('main') ?? document.body;
+      main.querySelectorAll('.psk-list-like').forEach((el) => el.remove());
+      const links = [...main.querySelectorAll<HTMLAnchorElement>('li > a[href]')]
+        .map((a) => ({ a, id: postIdFromRoute(new URL(a.href, location.href).pathname) }))
+        .filter((x): x is { a: HTMLAnchorElement; id: string } => !!x.id && x.id.startsWith(`${section}/`));
+      if (!links.length) return;
+      const ids = [...new Set(links.map((x) => x.id))];
+      const counts: Record<string, number> = {};
+      try {
+        for (let i = 0; i < ids.length; i += 100) {
+          const res = await fetch(`/api/likes?ids=${encodeURIComponent(ids.slice(i, i + 100).join(','))}`);
+          if (!res.ok) return;
+          Object.assign(counts, (await res.json()).counts);
+        }
+      } catch {
+        return;
+      }
+      if (stale) return;
+      for (const { a, id } of links) {
+        const n = counts[id] ?? 0;
+        const badge = document.createElement('span');
+        badge.className = n ? 'psk-list-like psk-list-like--hot' : 'psk-list-like';
+        badge.textContent = `${n ? '♥' : '♡'} ${n}`;
+        badge.setAttribute('aria-label', `${label}: ${n}`);
+        a.after(badge);
+      }
+    });
+    return () => {
+      stale = true;
+      clearTimeout(t);
+    };
+  }, [section, page?.routePath, label]);
+
+  return null;
 }
